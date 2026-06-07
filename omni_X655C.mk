@@ -14,3 +14,8 @@ PRODUCT_PLATFORM := mt6765
 
 # Copy TEEI blobs
  $(call inherit-product, vendor/infinix/X655C/TEEIBlobs.mk)
+
+PRODUCT_PACKAGES += \
+    libkeymaster_messages \
+    libkeymaster_portable \
+    libsoftkeymasterdevice
