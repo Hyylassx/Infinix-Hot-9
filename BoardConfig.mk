@@ -119,10 +119,18 @@ OF_MAX_BRIGHTNESS := 225
 # Input
 OF_INPUT_BLACKLIST := "hct_battery"
 
-# Crypto - START DISABLED, TEST FIRST
-OF_INCLUDE_CRYPTO := false
+# Crypto
+OF_INCLUDE_CRYPTO := true
+TW_INCLUDE_CRYPTO := true
+TW_INCLUDE_CRYPTO_FBE := true
 OF_EXCLUDE_ENCRYPTED_BACKUPS := true
 
 # SELinux
 OF_SELINUX_RELEASE_PERMISSIVE := true
 BOARD_USES_METADATA_PARTITION := true
+
+# Crypto Shared Library Relinking
+TW_RECOVERY_ADDITIONAL_RELINK_LIBRARY_FILES += \
+    $(TARGET_OUT_SHARED_LIBRARIES)/libkeymaster_messages.so \
+    $(TARGET_OUT_SHARED_LIBRARIES)/libkeymaster_portable.so \
+    $(TARGET_OUT_SHARED_LIBRARIES)/libsoftkeymasterdevice.so
