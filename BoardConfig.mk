@@ -115,7 +115,7 @@ OF_NO_SCREEN_TIMEOUT := true
 
 # Brightness
 OF_BRIGHTNESS_PATH := "/sys/class/leds/lcd-backlight/brightness"
-OF_DEFAULT_BRIGHTNESS := 15
+OF_DEFAULT_BRIGHTNESS := 20
 OF_MAX_BRIGHTNESS := 225
 
 # Input
