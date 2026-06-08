@@ -48,6 +48,10 @@ on boot
     chown root root /dev/input/event4
     chown root root /dev/input/event5
 
+    # START DRM SERVICES (Fixes the frozen splash screen!)
+    start allocator-2-0
+    start hwcomposer-2-1
+
 on post-fs-data
     # Nyalakan Logging Sistem Pemulihan
     start logd
@@ -79,4 +83,27 @@ service logcat /system/bin/logcat -b all -v threadtime -f /tmp/logcat.txt
     disabled
     seclabel u:r:recovery:s0
 
-# REMOVED: vold service - we're using native TWRP crypto, not vold
+# ADDED: vold service definition! 
+# FBE Decryption REQUIRES vold. The "start vold" command in microtrust.rc depends on this definition.
+service vold /system/bin/vold
+    class core
+    user root
+    group root mount reserved_disk
+    disabled
+    seclabel u:r:vold:s0
+
+# ============================================================
+# DRM GRAPHICS SERVICES
+# ============================================================
+
+service allocator-2-0 /vendor/bin/hw/android.hardware.graphics.allocator@2.0-service
+    class main
+    user system
+    group graphics drmrpc
+    disabled
+
+service hwcomposer-2-1 /vendor/bin/hw/android.hardware.graphics.composer@2.1-service
+    class main
+    user system
+    group graphics drmrpc
+    disabled
