@@ -1,6 +1,14 @@
 import /init.recovery.microtrust.rc
 
 on init
+    # Pembuatan Direktori Inti
+    mkdir /tmp 0777 root root
+    mkdir /data 0771 system system
+    
+    # CRITICAL FIX: Pre-create Microtrust TEE virtual RPMB paths
+    mkdir /data/vendor 0771 system system
+    mkdir /data/vendor/thh 0770 system system
+    mkdir /data/vendor/thh/tee_00 0770 system system
     # CRITICAL FIX: Mount cgroups! Without this, ALL HAL services crash instantly
     # with "failed to write pid to /dev/cpuset/foreground/tasks"
     mkdir /dev/cpuset 0750 root system
