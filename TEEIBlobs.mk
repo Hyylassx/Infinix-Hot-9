@@ -82,7 +82,6 @@ PRODUCT_COPY_FILES += \
     $(DEVICE_PATH)/recovery/root/vendor/lib/hw/android.hardware.graphics.mapper@2.0-impl-2.1.so:$(TARGET_COPY_OUT_VENDOR)/lib/hw/android.hardware.graphics.mapper@2.0-impl-2.1.so \
     $(DEVICE_PATH)/recovery/root/vendor/lib/hw/gralloc.default.so:$(TARGET_COPY_OUT_VENDOR)/lib/hw/gralloc.default.so \
     $(DEVICE_PATH)/recovery/root/vendor/lib/hw/gralloc.mt6765.so:$(TARGET_COPY_OUT_VENDOR)/lib/hw/gralloc.mt6765.so \
-    $(DEVICE_PATH)/recovery/root/vendor/lib/hw/libdrm.so:$(TARGET_COPY_OUT_VENDOR)/lib/hw/libdrm.so \
     $(DEVICE_PATH)/recovery/root/vendor/lib/hw/vulkan.mt6765.so:$(TARGET_COPY_OUT_VENDOR)/lib/hw/vulkan.mt6765.so \
     $(DEVICE_PATH)/recovery/root/vendor/lib64/hw/android.hardware.graphics.allocator@2.0-impl.so:$(TARGET_COPY_OUT_VENDOR)/lib64/hw/android.hardware.graphics.allocator@2.0-impl.so \
     $(DEVICE_PATH)/recovery/root/vendor/lib64/hw/android.hardware.graphics.composer@2.1-impl.so:$(TARGET_COPY_OUT_VENDOR)/lib64/hw/android.hardware.graphics.composer@2.1-impl.so \
@@ -90,11 +89,18 @@ PRODUCT_COPY_FILES += \
     $(DEVICE_PATH)/recovery/root/vendor/lib64/hw/gralloc.default.so:$(TARGET_COPY_OUT_VENDOR)/lib64/hw/gralloc.default.so \
     $(DEVICE_PATH)/recovery/root/vendor/lib64/hw/gralloc.mt6765.so:$(TARGET_COPY_OUT_VENDOR)/lib64/hw/gralloc.mt6765.so \
     $(DEVICE_PATH)/recovery/root/vendor/lib64/hw/hwcomposer.mt6765.so:$(TARGET_COPY_OUT_VENDOR)/lib64/hw/hwcomposer.mt6765.so \
-    $(DEVICE_PATH)/recovery/root/vendor/lib64/hw/libdrm.so:$(TARGET_COPY_OUT_VENDOR)/lib64/hw/libdrm.so \
     $(DEVICE_PATH)/recovery/root/vendor/lib64/hw/vulkan.mt6765.so:$(TARGET_COPY_OUT_VENDOR)/lib64/hw/vulkan.mt6765.so
 
 # ============================================================
-# Copy TA files and VINTF Configs
+# CRITICAL FIX 1: libdrm.so MUST be in /lib/, NOT /hw/
+# (If it's in /hw/, the linker can't find it and DRM crashes!)
+# ============================================================
+PRODUCT_COPY_FILES += \
+    $(DEVICE_PATH)/recovery/root/vendor/lib/libdrm.so:$(TARGET_COPY_OUT_VENDOR)/lib/libdrm.so \
+    $(DEVICE_PATH)/recovery/root/vendor/lib64/libdrm.so:$(TARGET_COPY_OUT_VENDOR)/lib64/libdrm.so
+
+# ============================================================
+# Copy TA files 
 # ============================================================
 PRODUCT_COPY_FILES += \
     $(DEVICE_PATH)/recovery/root/vendor/thh/ta/7778c03fc30c4dd0a319ea29643d4d4b.ta:$(TARGET_COPY_OUT_VENDOR)/thh/ta/7778c03fc30c4dd0a319ea29643d4d4b.ta \
@@ -102,14 +108,23 @@ PRODUCT_COPY_FILES += \
     $(DEVICE_PATH)/recovery/root/vendor/thh/ta/93feffccd8ca11e796c7c7a21acb4932.ta:$(TARGET_COPY_OUT_VENDOR)/thh/ta/93feffccd8ca11e796c7c7a21acb4932.ta \
     $(DEVICE_PATH)/recovery/root/vendor/thh/ta/c09c9c5daa504b78b0e46eda61556c3a.ta:$(TARGET_COPY_OUT_VENDOR)/thh/ta/c09c9c5daa504b78b0e46eda61556c3a.ta \
     $(DEVICE_PATH)/recovery/root/vendor/thh/ta/c1882f2d885e4e13a8c8e2622461b2fa.ta:$(TARGET_COPY_OUT_VENDOR)/thh/ta/c1882f2d885e4e13a8c8e2622461b2fa.ta \
-    $(DEVICE_PATH)/recovery/root/vendor/thh/ta/d91f322ad5a441d5955110eda3272fc0.ta:$(TARGET_COPY_OUT_VENDOR)/thh/ta/d91f322ad5a441d5955110eda3272fc0.ta \
+    $(DEVICE_PATH)/recovery/root/vendor/thh/ta/d91f322ad5a441d5955110eda3272fc0.ta:$(TARGET_COPY_OUT_VENDOR)/thh/ta/d91f322ad5a441d5955110eda3272fc0.ta
+
+# Core Configs
+PRODUCT_COPY_FILES += \
     $(DEVICE_PATH)/recovery/root/vendor/etc/vintf/compatibility_matrix.xml:$(TARGET_COPY_OUT_VENDOR)/etc/vintf/compatibility_matrix.xml \
     $(DEVICE_PATH)/recovery/root/vendor/etc/vintf/manifest.xml:$(TARGET_COPY_OUT_VENDOR)/etc/vintf/manifest.xml \
-    $(DEVICE_PATH)/recovery/root/init.recovery.mt6765.rc:$(TARGET_COPY_OUT_VENDOR)/etc/init/hw/init.recovery.mt6765.rc \
-    $(DEVICE_PATH)/recovery/root/init.recovery.microtrust.rc:$(TARGET_COPY_OUT_SYSTEM)/etc/init/init.recovery.microtrust.rc \
-    $(DEVICE_PATH)/recovery/root/init.recovery.usb.rc:$(TARGET_COPY_OUT_SYSTEM)/etc/init/init.recovery.usb.rc \
-    $(DEVICE_PATH)/recovery/root/ueventd.mt6765.rc:$(TARGET_COPY_OUT_SYSTEM)/etc/ueventd.mt6765.rc \
     $(DEVICE_PATH)/recovery/root/vndservice_contexts:$(TARGET_COPY_OUT_VENDOR)/etc/vndservice_contexts
+
+# ============================================================
+# CRITICAL FIX 2: .rc files MUST go to root/ to be read!
+# (If they go to /vendor/etc/, init ignores them and HALs crash!)
+# ============================================================
+PRODUCT_COPY_FILES += \
+    $(DEVICE_PATH)/recovery/root/init.recovery.mt6765.rc:root/init.recovery.mt6765.rc \
+    $(DEVICE_PATH)/recovery/root/init.recovery.microtrust.rc:root/init.recovery.microtrust.rc \
+    $(DEVICE_PATH)/recovery/root/init.recovery.usb.rc:root/init.recovery.usb.rc \
+    $(DEVICE_PATH)/recovery/root/ueventd.mt6765.rc:root/ueventd.mt6765.rc
 
 # ============================================================
 # Vold & Crypto Properties
