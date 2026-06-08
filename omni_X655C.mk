@@ -17,6 +17,9 @@ PRODUCT_PLATFORM := mt6765
 
 # Crypto Packages (REMOVED libsoftkeymasterdevice - it breaks Microtrust FBE!)
 PRODUCT_PACKAGES += \
+    servicemanager \
+    hwservicemanager \
+    vndservicemanager \
     libkeymaster_messages \
     libkeymaster_portable \
     vold \
