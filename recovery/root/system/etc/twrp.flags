@@ -13,6 +13,7 @@
 /nvdata         ext4    /dev/block/by-name/nvdata          flags=display="NVData";backup=1;subpartitionof=/nvram
 /nvcfg          ext4    /dev/block/by-name/nvcfg           flags=display="NVCfg";backup=1;subpartitionof=/nvram
 /proinfo        emmc    /dev/block/by-name/proinfo         flags=display="Proinfo";backup=1
+/data           f2fs    /dev/block/by-name/userdata        flags=display="Data";backup=1;wipeingui
 
 # MediaTek Security & Firmware Components
 /logo           emmc    /dev/block/by-name/logo            flags=display="Logo";backup=1;flashimg=1
