@@ -29,7 +29,7 @@ on init
 
 on fs
     write /sys/class/udc/musb-hdrc/device/cmode 1
-    
+
     # 2. Jalankan Tiga Layanan IPC Binder Utama untuk Android 10
     start servicemanager
     start hwservicemanager
@@ -43,4 +43,79 @@ on post-fs
     symlink /dev/block/mmcblk0boot1 /dev/block/platform/bootdevice/by-name/preloader_b
 
 on boot
-    # CRITICAL FIX: Stop keystore2 crash loop (
+    # CRITICAL FIX: Stop keystore2 crash loop (Not needed for Android 10 recovery)
+    stop keystore2
+
+    # Perizinan Input Sentuh (Touchscreen Driver)
+    chmod 0666 /dev/input/event0
+    chmod 0666 /dev/input/event1
+    chmod 0666 /dev/input/event2
+    chmod 0666 /dev/input/event3
+    chmod 0666 /dev/input/event4
+    chmod 0666 /dev/input/event5
+    chown root root /dev/input/event0
+    chown root root /dev/input/event1
+    chown root root /dev/input/event2
+    chown root root /dev/input/event3
+    chown root root /dev/input/event4
+    chown root root /dev/input/event5
+
+    # START DRM SERVICES (Fixes the frozen splash screen!)
+    start allocator-2-0
+    start hwcomposer-2-1
+
+on post-fs-data
+    # Nyalakan Logging Sistem Pemulihan
+    start logd
+
+# ============================================================
+# DEFINISI CORE SERVICES ANDROID 10 & TWRP
+# ============================================================
+
+service servicemanager /system/bin/servicemanager
+    class core
+    user root
+    group root readproc
+    disabled
+    seclabel u:r:recovery:s0
+
+service logd /system/bin/logd
+    class core
+    user logd
+    group logd system package_info readproc
+    capabilities SYSLOG AUDIT_CONTROL
+    priority 10
+    writepid /dev/cpuset/system-background/tasks
+    seclabel u:r:logd:s0
+
+service logcat /system/bin/logcat -b all -v threadtime -f /tmp/logcat.txt
+    class boot
+    user root
+    group root
+    disabled
+    seclabel u:r:recovery:s0
+
+# CRITICAL FIX: FBE Decryption REQUIRES vold. 
+# The "start vold" command in microtrust.rc depends on this definition.
+service vold /system/bin/vold
+    class core
+    user root
+    group root mount reserved_disk
+    disabled
+    seclabel u:r:vold:s0
+
+# ============================================================
+# DRM GRAPHICS SERVICES
+# ============================================================
+
+service allocator-2-0 /vendor/bin/hw/android.hardware.graphics.allocator@2.0-service
+    class main
+    user system
+    group graphics drmrpc
+    disabled
+
+service hwcomposer-2-1 /vendor/bin/hw/android.hardware.graphics.composer@2.1-service
+    class main
+    user system
+    group graphics drmrpc
+    disabled
