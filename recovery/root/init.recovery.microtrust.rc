@@ -75,7 +75,9 @@ on boot
     chown system system /sys/bus/platform/devices/utos/unload_ut_drv
     chown system system /sys/bus/platform/devices/utos/notify_ree_dci_handler
 
-on post-fs-data
+on init
+    mkdir /data 0771 system system
+    mkdir /data/vendor 0771 system system
     mkdir /data/vendor/thh 0755 system system
     mkdir /data/vendor/thh/tee_00 0755 system system
 
