@@ -101,7 +101,35 @@ on property:init.svc.keymaster-4-0-beanpod=running
 # ============================================
 on property:twrp.decrypt.done=true
     stop gatekeeper-1-0
+    stop keymaster-4-0-beanpod# ============================================
+# Crypto Stack Startup Chain
+# ============================================
+on property:init.svc.hwservicemanager=running
+    wait /dev/teei_client
+    start teei_daemon
+
+on property:init.svc.teei_daemon=running
+    setprop crypto.ready 1
+    start keymaster-4-0-beanpod
+    start gatekeeper-1-0
+    start keymaster-attestation
+
+on property:init.svc.keymaster-4-0-beanpod=running
+    start teei_capi_2_0
+    # ADDED: vold MUST start after keymaster is registered.
+    # TWRP's custom vold will talk to keymaster to decrypt FBE.
+    start vold
+
+# ============================================
+# Cleanup
+# ============================================
+on property:twrp.decrypt.done=true
+    stop gatekeeper-1-0
     stop keymaster-4-0-beanpod
+    stop keymaster-attestation
+    stop teei_capi_2_0
+    stop teei_daemon
+    stop vold
     stop keymaster-attestation
     stop teei_capi_2_0
     stop teei_daemon
