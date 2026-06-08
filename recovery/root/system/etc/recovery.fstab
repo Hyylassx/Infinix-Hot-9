@@ -6,7 +6,7 @@ product          ext4      product                                          wait
 
 # Metadata & Data
 /metadata        ext4      /dev/block/platform/bootdevice/by-name/metadata  wait,formattable,first_stage_mount
-/data            f2fs      /dev/block/platform/bootdevice/by-name/userdata  wait,check,formattable,resize
+/data            f2fs      /dev/block/platform/bootdevice/by-name/userdata  wait,check,formattable,resize,encryptable=footer
 /cache           ext4      /dev/block/platform/bootdevice/by-name/cache     wait,check,formattable
 
 # Vendor/Protected Partitions
