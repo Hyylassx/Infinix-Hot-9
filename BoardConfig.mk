@@ -30,7 +30,8 @@ TARGET_USERIMAGES_USE_EXT4 := true
 TARGET_USERIMAGES_USE_F2FS := true
 TARGET_RECOVERY_PIXEL_FORMAT := "BGRA_8888"
 TARGET_SCREEN_DENSITY := 320
-TARGET_SYSTEM_PROP := device/infinix/X655C/system.prop
+TARGET_SYSTEM_PROP := $(DEVICE_PATH)/system.prop
+TARGET_RECOVERY_FSTAB := $(DEVICE_PATH)recovery/root/system/etc/recovery.fstab
 
 # Kernel
 BOARD_KERNEL_CMDLINE := bootopt=64S3,32N2,64N2 androidboot.selinux=permissive androidboot.boot_devices=bootdevice androidboot.hardware=mt6765 androidboot.logical_partitions=1
