@@ -25,7 +25,7 @@
 /spmfw          emmc    /dev/block/by-name/spmfw           flags=display="SPM Firmware";backup=1
 
 # Protected Filesystems
-/metadata       ext4    /dev/block/by-name/metadata        flags=display="Metadata";backup=1
+/metadata       ext4    /dev/block/by-name/md_udc        flags=display="Metadata";backup=1
 /persist        ext4    /dev/block/by-name/persist         flags=display="Persist";backup=1
 /protect_f      ext4    /dev/block/by-name/protect1        flags=display="Protect_F";backup=1
 /protect_s      ext4    /dev/block/by-name/protect2        flags=display="Protect_S";backup=1
