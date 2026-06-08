@@ -129,10 +129,6 @@ TW_INCLUDE_CRYPTO := true
 TW_INCLUDE_CRYPTO_FBE := true
 OF_EXCLUDE_ENCRYPTED_BACKUPS := true
 
-# Force FBE properties so recovery doesn't guess
-PRODUCT_SYSTEM_DEFAULT_PROPERTIES += ro.crypto.state=encrypted
-PRODUCT_SYSTEM_DEFAULT_PROPERTIES += ro.crypto.type=file
-
 # SELinux
 OF_SELINUX_RELEASE_PERMISSIVE := true
 BOARD_USES_METADATA_PARTITION := true
