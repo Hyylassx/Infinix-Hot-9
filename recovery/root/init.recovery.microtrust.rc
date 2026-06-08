@@ -101,7 +101,8 @@ on property:init.svc.keymaster-4-0-beanpod=running
 # ============================================
 on property:twrp.decrypt.done=true
     stop gatekeeper-1-0
-    stop keymaster-4-0-beanpod# ============================================
+    stop keymaster-4-0-beanpod
+# ============================================
 # Crypto Stack Startup Chain
 # ============================================
 on property:init.svc.hwservicemanager=running
