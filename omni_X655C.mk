@@ -15,6 +15,17 @@ PRODUCT_PLATFORM := mt6765
 # Copy TEEI blobs
  $(call inherit-product, vendor/infinix/X655C/TEEIBlobs.mk)
 
+# Crypto Packages (REMOVED libsoftkeymasterdevice - it breaks Microtrust FBE!)
 PRODUCT_PACKAGES += \
     libkeymaster_messages \
-    libkeymaster_portable 
+    libkeymaster_portable \
+    vold \
+    vold_prepare_subdirs
+
+# Force FBE Crypto Properties (Tells recovery it is FBE encrypted)
+PRODUCT_SYSTEM_DEFAULT_PROPERTIES += ro.crypto.state=encrypted
+PRODUCT_SYSTEM_DEFAULT_PROPERTIES += ro.crypto.type=file
+
+# Force DRM Graphics Properties (Tells recovery to use DRM instead of fbdev)
+PRODUCT_SYSTEM_DEFAULT_PROPERTIES += ro.hardware.hwcomposer=mt6765
+PRODUCT_SYSTEM_DEFAULT_PROPERTIES += ro.hardware.gralloc=mt6765
