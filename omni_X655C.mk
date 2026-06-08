@@ -17,5 +17,4 @@ PRODUCT_PLATFORM := mt6765
 
 PRODUCT_PACKAGES += \
     libkeymaster_messages \
-    libkeymaster_portable \
-    libsoftkeymasterdevice
+    libkeymaster_portable 
