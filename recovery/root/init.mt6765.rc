@@ -30,10 +30,6 @@ on init
 on fs
     write /sys/class/udc/musb-hdrc/device/cmode 1
     
-    # 1. Hubungkan dan Pasang Partisi Vendor di Awal Booting
-    wait /dev/block/by-name/vendor
-    mount ext4 /dev/block/by-name/vendor /vendor ro
-
     # 2. Jalankan Tiga Layanan IPC Binder Utama untuk Android 10
     start servicemanager
     start hwservicemanager
