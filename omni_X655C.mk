@@ -1,6 +1,6 @@
  $(call inherit-product, $(SRC_TARGET_DIR)/product/core_64_bit.mk)
  $(call inherit-product, $(SRC_TARGET_DIR)/product/core_minimal.mk)
- $(call inherit-product, vendor/fox/fox.mk)
+ $(call inherit-product, vendor/fox/config/fox.mk)
 
 PRODUCT_DEVICE := X655C
 PRODUCT_NAME := omni_X655C
