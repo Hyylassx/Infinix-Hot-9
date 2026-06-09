@@ -1,3 +1,6 @@
+## 
+DEVICE_PATH := device/infinix/X655C
+
  $(call inherit-product, $(SRC_TARGET_DIR)/product/core_64_bit.mk)
  $(call inherit-product, $(SRC_TARGET_DIR)/product/core_minimal.mk)
  $(call inherit-product, vendor/fox/config/fox.mk)
