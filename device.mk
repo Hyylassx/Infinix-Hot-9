@@ -82,12 +82,7 @@ PRODUCT_COPY_FILES += \
     $(DEVICE_PATH)/recovery/root/vendor/lib64/hw/gralloc.default.so:$(TARGET_COPY_OUT_VENDOR)/lib64/hw/gralloc.default.so \
     $(DEVICE_PATH)/recovery/root/vendor/lib64/hw/gralloc.mt6765.so:$(TARGET_COPY_OUT_VENDOR)/lib64/hw/gralloc.mt6765.so \
     $(DEVICE_PATH)/recovery/root/vendor/lib64/hw/hwcomposer.mt6765.so:$(TARGET_COPY_OUT_VENDOR)/lib64/hw/hwcomposer.mt6765.so \
-    $(DEVICE_PATH)/recovery/root/vendor/lib64/hw/vulkan.mt6765.so:$(TARGET_COPY_OUT_VENDOR)/lib64/hw/vulkan.mt6765.so
-
-
-# CRITICAL FIX 1: libdrm.so MUST be in /lib/, NOT /hw/
-# (If it's in /hw/, the linker can't find it and DRM crashes!)
-PRODUCT_COPY_FILES += \
+    $(DEVICE_PATH)/recovery/root/vendor/lib64/hw/vulkan.mt6765.so:$(TARGET_COPY_OUT_VENDOR)/lib64/hw/vulkan.mt6765.so \
     $(DEVICE_PATH)/recovery/root/vendor/lib/libdrm.so:$(TARGET_COPY_OUT_VENDOR)/lib/libdrm.so \
     $(DEVICE_PATH)/recovery/root/vendor/lib64/libdrm.so:$(TARGET_COPY_OUT_VENDOR)/lib64/libdrm.so
 
@@ -100,15 +95,14 @@ PRODUCT_COPY_FILES += \
     $(DEVICE_PATH)/recovery/root/vendor/thh/ta/c1882f2d885e4e13a8c8e2622461b2fa.ta:$(TARGET_COPY_OUT_VENDOR)/thh/ta/c1882f2d885e4e13a8c8e2622461b2fa.ta \
     $(DEVICE_PATH)/recovery/root/vendor/thh/ta/d91f322ad5a441d5955110eda3272fc0.ta:$(TARGET_COPY_OUT_VENDOR)/thh/ta/d91f322ad5a441d5955110eda3272fc0.ta
 
-# Core Configs
-PRODUCT_COPY_FILES += \
-    $(DEVICE_PATH)/recovery/root/vndservice_contexts:$(TARGET_COPY_OUT_VENDOR)/etc/vndservice_contexts
 
 
-# CRITICAL FIX 2: .rc files MUST go to root/ to be read!
+# Core
 # (If they go to /vendor/etc/, init ignores them and HALs crash!)
 PRODUCT_COPY_FILES += \
     $(DEVICE_PATH)/recovery/root/init.mt6765.rc:root/init.mt6765.rc \
+    $(DEVICE_PATH)/prebuilt/dtb.img:dtb.img \
+    $(DEVICE_PATH)/recovery/root/vndservice_contexts:$(TARGET_COPY_OUT_VENDOR)/etc/vndservice_contexts \
     $(DEVICE_PATH)/recovery/root/init.recovery.microtrust.rc:root/init.recovery.microtrust.rc \
     $(DEVICE_PATH)/recovery/root/init.recovery.usb.rc:root/init.recovery.usb.rc \
     $(DEVICE_PATH)/recovery/root/ueventd.mt6765.rc:root/ueventd.mt6765.rc \
