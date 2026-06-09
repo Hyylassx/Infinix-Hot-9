@@ -102,8 +102,6 @@ PRODUCT_COPY_FILES += \
 
 # Core Configs
 PRODUCT_COPY_FILES += \
-    $(DEVICE_PATH)/recovery/root/vendor/etc/vintf/compatibility_matrix.xml:$(TARGET_COPY_OUT_VENDOR)/etc/vintf/compatibility_matrix.xml \
-    $(DEVICE_PATH)/recovery/root/vendor/etc/vintf/manifest.xml:$(TARGET_COPY_OUT_VENDOR)/etc/vintf/manifest.xml \
     $(DEVICE_PATH)/recovery/root/vndservice_contexts:$(TARGET_COPY_OUT_VENDOR)/etc/vndservice_contexts
 
 
