@@ -1,4 +1,18 @@
 DEVICE_PATH := device/infinix/X655C
+
+# Core
+# (If they go to /vendor/etc/, init ignores them and HALs crash!)
+PRODUCT_COPY_FILES += \
+    $(DEVICE_PATH)/recovery/root/init.mt6765.rc:root/init.mt6765.rc \
+    $(DEVICE_PATH)/prebuilt/dtb.img:dtb.img \
+    $(DEVICE_PATH)/recovery/root/vndservice_contexts:$(TARGET_COPY_OUT_VENDOR)/etc/vndservice_contexts \
+    $(DEVICE_PATH)/recovery/root/init.recovery.microtrust.rc:root/init.recovery.microtrust.rc \
+    $(DEVICE_PATH)/recovery/root/init.recovery.usb.rc:root/init.recovery.usb.rc \
+    $(DEVICE_PATH)/recovery/root/ueventd.mt6765.rc:root/ueventd.mt6765.rc \
+    $(DEVICE_PATH)/recovery/root/vendor/firmware/rgx.fw:$(TARGET_COPY_OUT_VENDOR)/firmware/rgx.fw \
+    $(DEVICE_PATH)/recovery/root/vendor/firmware/novatek_ts_fw.bin:$(TARGET_COPY_OUT_VENDOR)/firmware/novatek_ts_fw.bin \
+    $(DEVICE_PATH)/recovery/root/vendor/firmware/novatek_ts_mp.bin:$(TARGET_COPY_OUT_VENDOR)/firmware/novatek_ts_mp.bin
+
 # Copy TEEI binaries
 PRODUCT_COPY_FILES += \
     $(DEVICE_PATH)/recovery/root/vendor/bin/teei_daemon:$(TARGET_COPY_OUT_VENDOR)/bin/teei_daemon \
@@ -95,20 +109,6 @@ PRODUCT_COPY_FILES += \
     $(DEVICE_PATH)/recovery/root/vendor/thh/ta/c1882f2d885e4e13a8c8e2622461b2fa.ta:$(TARGET_COPY_OUT_VENDOR)/thh/ta/c1882f2d885e4e13a8c8e2622461b2fa.ta \
     $(DEVICE_PATH)/recovery/root/vendor/thh/ta/d91f322ad5a441d5955110eda3272fc0.ta:$(TARGET_COPY_OUT_VENDOR)/thh/ta/d91f322ad5a441d5955110eda3272fc0.ta
 
-
-
-# Core
-# (If they go to /vendor/etc/, init ignores them and HALs crash!)
-PRODUCT_COPY_FILES += \
-    $(DEVICE_PATH)/recovery/root/init.mt6765.rc:root/init.mt6765.rc \
-    $(DEVICE_PATH)/prebuilt/dtb.img:dtb.img \
-    $(DEVICE_PATH)/recovery/root/vndservice_contexts:$(TARGET_COPY_OUT_VENDOR)/etc/vndservice_contexts \
-    $(DEVICE_PATH)/recovery/root/init.recovery.microtrust.rc:root/init.recovery.microtrust.rc \
-    $(DEVICE_PATH)/recovery/root/init.recovery.usb.rc:root/init.recovery.usb.rc \
-    $(DEVICE_PATH)/recovery/root/ueventd.mt6765.rc:root/ueventd.mt6765.rc \
-    $(DEVICE_PATH)/recovery/root/vendor/firmware/rgx.fw:$(TARGET_COPY_OUT_VENDOR)/firmware/rgx.fw \
-    $(DEVICE_PATH)/recovery/root/vendor/firmware/novatek_ts_fw.bin:$(TARGET_COPY_OUT_VENDOR)/firmware/novatek_ts_fw.bin \
-    $(DEVICE_PATH)/recovery/root/vendor/firmware/novatek_ts_mp.bin:$(TARGET_COPY_OUT_VENDOR)/firmware/novatek_ts_mp.bin
     
 
 # Vold & Crypto Properties
