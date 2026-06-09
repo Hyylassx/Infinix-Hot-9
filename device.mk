@@ -79,8 +79,6 @@ PRODUCT_COPY_FILES += \
     $(DEVICE_PATH)/recovery/root/vendor/thh/ta/c1882f2d885e4e13a8c8e2622461b2fa.ta:$(TARGET_COPY_OUT_VENDOR)/thh/ta/c1882f2d885e4e13a8c8e2622461b2fa.ta \
     $(DEVICE_PATH)/recovery/root/vendor/thh/ta/d91f322ad5a441d5955110eda3272fc0.ta:$(TARGET_COPY_OUT_VENDOR)/thh/ta/d91f322ad5a441d5955110eda3272fc0.ta
 
-    
-
 # Vold & Crypto Properties
 PRODUCT_SYSTEM_DEFAULT_PROPERTIES += ro.twrp.boot=1
 PRODUCT_SYSTEM_DEFAULT_PROPERTIES += ro.crypto.state=encrypted
