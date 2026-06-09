@@ -1,6 +1,5 @@
 # OrangeFox BoardConfig
 DEVICE_PATH := device/infinix/X655C
-
 ALLOW_MISSING_DEPENDENCIES := true
 
 # Architecture
