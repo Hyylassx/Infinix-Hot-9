@@ -1,3 +1,4 @@
+DEVICE_PATH := device/infinix/X655C
 # Copy TEEI binaries
 PRODUCT_COPY_FILES += \
     $(DEVICE_PATH)/recovery/root/vendor/bin/teei_daemon:$(TARGET_COPY_OUT_VENDOR)/bin/teei_daemon \
