@@ -20,12 +20,8 @@ PRODUCT_PACKAGES += \
     servicemanager \
     hwservicemanager \
     vndservicemanager \
-    libkeymaster_messages \
-    libkeymaster_portable \
     vold \
-    vold_prepare_subdirs \
-    android.hardware.fastboot@1.1-impl-mock \
-    fastbootd
+    vold_prepare_subdirs 
 
 # Force FBE Crypto Properties (Tells recovery it is FBE encrypted)
 PRODUCT_SYSTEM_DEFAULT_PROPERTIES += ro.crypto.state=encrypted
