@@ -3,13 +3,13 @@
  $(call inherit-product, vendor/fox/fox.mk)
  $(call inherit-product, device/infinix/X655C/TEEIBlobs.mk)
 
+DEVICE_PATH := device/infinix/X655C
+
 PRODUCT_DEVICE := X655C
 PRODUCT_NAME := omni_X655C
 PRODUCT_BRAND := Infinix
 PRODUCT_MODEL := Infinix Hot 9
 PRODUCT_MANUFACTURER := Infinix
-
-DEVICE_PATH := device/infinix/X655C
 
 PRODUCT_SHIPPING_API_LEVEL := 29
 PRODUCT_TARGET_VNDK_VERSION := 29
