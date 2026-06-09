@@ -22,16 +22,6 @@ PRODUCT_COPY_FILES += \
     $(DEVICE_PATH)/recovery/root/vendor/bin/hw/vendor.mediatek.hardware.keymaster_attestation@1.1-service:$(TARGET_COPY_OUT_VENDOR)/bin/hw/vendor.mediatek.hardware.keymaster_attestation@1.1-service \
     $(DEVICE_PATH)/recovery/root/vendor/bin/hw/android.hardware.gatekeeper@1.0-service:$(TARGET_COPY_OUT_VENDOR)/bin/hw/android.hardware.gatekeeper@1.0-service
 
-
-# Copy DRM / Graphics binaries (Fixes frozen splash screen!)
-PRODUCT_COPY_FILES += \
-    $(DEVICE_PATH)/recovery/root/vendor/bin/hw/android.hardware.graphics.allocator@2.0-service:$(TARGET_COPY_OUT_VENDOR)/bin/hw/android.hardware.graphics.allocator@2.0-service \
-    $(DEVICE_PATH)/recovery/root/vendor/bin/hw/android.hardware.graphics.composer@2.1-service:$(TARGET_COPY_OUT_VENDOR)/bin/hw/android.hardware.graphics.composer@2.1-service \
-    $(DEVICE_PATH)/recovery/root/vendor/bin/hw/android.hardware.drm@1.0-service:$(TARGET_COPY_OUT_VENDOR)/bin/hw/android.hardware.drm@1.0-service \
-    $(DEVICE_PATH)/recovery/root/vendor/bin/hw/android.hardware.drm@1.2-service.clearkey:$(TARGET_COPY_OUT_VENDOR)/bin/hw/android.hardware.drm@1.2-service.clearkey \
-    $(DEVICE_PATH)/recovery/root/vendor/bin/hw/android.hardware.drm@1.2-service.widevine:$(TARGET_COPY_OUT_VENDOR)/bin/hw/android.hardware.drm@1.2-service.widevine
-
-
 # Copy TEEI libraries (32-bit)
 PRODUCT_COPY_FILES += \
     $(DEVICE_PATH)/recovery/root/vendor/lib/libcrypto-mdapp.so:$(TARGET_COPY_OUT_VENDOR)/lib/libcrypto-mdapp.so \
@@ -79,26 +69,6 @@ PRODUCT_COPY_FILES += \
     $(DEVICE_PATH)/recovery/root/vendor/lib64/hw/vendor.mediatek.hardware.keymaster_attestation@1.1-impl.so:$(TARGET_COPY_OUT_VENDOR)/lib64/hw/vendor.mediatek.hardware.keymaster_attestation@1.1-impl.so \
     $(DEVICE_PATH)/recovery/root/vendor/lib64/hw/kmsetkey.default.so:$(TARGET_COPY_OUT_VENDOR)/lib64/hw/kmsetkey.default.so \
     $(DEVICE_PATH)/recovery/root/vendor/lib64/hw/kmsetkey.mt6765.so:$(TARGET_COPY_OUT_VENDOR)/lib64/hw/kmsetkey.mt6765.so
-
-
-# Copy DRM / Graphics hardware modules (Fixes frozen splash screen!)
-PRODUCT_COPY_FILES += \
-    $(DEVICE_PATH)/recovery/root/vendor/lib/hw/android.hardware.drm@1.0-impl.so:$(TARGET_COPY_OUT_VENDOR)/lib/hw/android.hardware.drm@1.0-impl.so \
-    $(DEVICE_PATH)/recovery/root/vendor/lib/hw/android.hardware.graphics.allocator@2.0-impl.so:$(TARGET_COPY_OUT_VENDOR)/lib/hw/android.hardware.graphics.allocator@2.0-impl.so \
-    $(DEVICE_PATH)/recovery/root/vendor/lib/hw/android.hardware.graphics.composer@2.1-impl.so:$(TARGET_COPY_OUT_VENDOR)/lib/hw/android.hardware.graphics.composer@2.1-impl.so \
-    $(DEVICE_PATH)/recovery/root/vendor/lib/hw/android.hardware.graphics.mapper@2.0-impl-2.1.so:$(TARGET_COPY_OUT_VENDOR)/lib/hw/android.hardware.graphics.mapper@2.0-impl-2.1.so \
-    $(DEVICE_PATH)/recovery/root/vendor/lib/hw/gralloc.default.so:$(TARGET_COPY_OUT_VENDOR)/lib/hw/gralloc.default.so \
-    $(DEVICE_PATH)/recovery/root/vendor/lib/hw/gralloc.mt6765.so:$(TARGET_COPY_OUT_VENDOR)/lib/hw/gralloc.mt6765.so \
-    $(DEVICE_PATH)/recovery/root/vendor/lib/hw/vulkan.mt6765.so:$(TARGET_COPY_OUT_VENDOR)/lib/hw/vulkan.mt6765.so \
-    $(DEVICE_PATH)/recovery/root/vendor/lib64/hw/android.hardware.graphics.allocator@2.0-impl.so:$(TARGET_COPY_OUT_VENDOR)/lib64/hw/android.hardware.graphics.allocator@2.0-impl.so \
-    $(DEVICE_PATH)/recovery/root/vendor/lib64/hw/android.hardware.graphics.composer@2.1-impl.so:$(TARGET_COPY_OUT_VENDOR)/lib64/hw/android.hardware.graphics.composer@2.1-impl.so \
-    $(DEVICE_PATH)/recovery/root/vendor/lib64/hw/android.hardware.graphics.mapper@2.0-impl-2.1.so:$(TARGET_COPY_OUT_VENDOR)/lib64/hw/android.hardware.graphics.mapper@2.0-impl-2.1.so \
-    $(DEVICE_PATH)/recovery/root/vendor/lib64/hw/gralloc.default.so:$(TARGET_COPY_OUT_VENDOR)/lib64/hw/gralloc.default.so \
-    $(DEVICE_PATH)/recovery/root/vendor/lib64/hw/gralloc.mt6765.so:$(TARGET_COPY_OUT_VENDOR)/lib64/hw/gralloc.mt6765.so \
-    $(DEVICE_PATH)/recovery/root/vendor/lib64/hw/hwcomposer.mt6765.so:$(TARGET_COPY_OUT_VENDOR)/lib64/hw/hwcomposer.mt6765.so \
-    $(DEVICE_PATH)/recovery/root/vendor/lib64/hw/vulkan.mt6765.so:$(TARGET_COPY_OUT_VENDOR)/lib64/hw/vulkan.mt6765.so \
-    $(DEVICE_PATH)/recovery/root/vendor/lib/libdrm.so:$(TARGET_COPY_OUT_VENDOR)/lib/libdrm.so \
-    $(DEVICE_PATH)/recovery/root/vendor/lib64/libdrm.so:$(TARGET_COPY_OUT_VENDOR)/lib64/libdrm.so
 
 # Copy TA files 
 PRODUCT_COPY_FILES += \
