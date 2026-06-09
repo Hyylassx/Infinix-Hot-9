@@ -14,7 +14,7 @@ PRODUCT_PLATFORM := mt6765
 PRODUCT_USE_DYNAMIC_PARTITIONS := true
 
 # Copy TEEI blobs
- $(call inherit-product, device/infinix/X655C/TEEIBlobs.mk)
+ $(call inherit-product, vendor/infinix/X655C/TEEIBlobs.mk)
 
 # Crypto Packages (REMOVED libsoftkeymasterdevice - it breaks Microtrust FBE!)
 PRODUCT_PACKAGES += \
