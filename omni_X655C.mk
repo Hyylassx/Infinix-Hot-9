@@ -1,6 +1,6 @@
  $(call inherit-product, $(SRC_TARGET_DIR)/product/core_64_bit.mk)
  $(call inherit-product, $(SRC_TARGET_DIR)/product/core_minimal.mk)
- $(call inherit-product, vendor/fox/config/common.mk)
+ $(call inherit-product, vendor/recovery/config/common.mk)
  $(call inherit-product, device/infinix/X655C/device.mk)
 
 DEVICE_PATH := device/infinix/X655C
