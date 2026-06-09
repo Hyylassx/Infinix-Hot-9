@@ -3,7 +3,7 @@ DEVICE_PATH := device/infinix/X655C
 # Core
 # (If they go to /vendor/etc/, init ignores them and HALs crash!)
 PRODUCT_COPY_FILES += \
-    $(DEVICE_PATH)/recovery/root/init.mt6765.rc:root/init.mt6765.rc \
+    $(DEVICE_PATH)/recovery/root/init.recovery.mt6765.rc:root/init.recovery.mt6765.rc \
     $(DEVICE_PATH)/prebuilt/dtb.img:dtb.img \
     $(DEVICE_PATH)/recovery/root/vndservice_contexts:$(TARGET_COPY_OUT_VENDOR)/etc/vndservice_contexts \
     $(DEVICE_PATH)/recovery/root/init.recovery.microtrust.rc:root/init.recovery.microtrust.rc \
