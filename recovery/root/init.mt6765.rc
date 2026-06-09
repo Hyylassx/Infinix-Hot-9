@@ -71,9 +71,7 @@ on post-fs-data
     # Nyalakan Logging Sistem Pemulihan
     start logd
 
-# ============================================================
 # DEFINISI CORE SERVICES ANDROID 10 & TWRP
-# ============================================================
 
 service servicemanager /system/bin/servicemanager
     class core
@@ -107,9 +105,7 @@ service vold /system/bin/vold
     disabled
     seclabel u:r:vold:s0
 
-# ============================================================
 # DRM GRAPHICS SERVICES
-# ============================================================
 
 service allocator-2-0 /vendor/bin/hw/android.hardware.graphics.allocator@2.0-service
     class main
