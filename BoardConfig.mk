@@ -1,5 +1,5 @@
 # OrangeFox BoardConfig
-DEVICE_PATH := device/infinix/X655C
+DEVICE_PATH := vendor/infinix/X655C
 
 ALLOW_MISSING_DEPENDENCIES := true
 
