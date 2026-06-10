@@ -7,7 +7,7 @@
 /product         ext4    product                                        flags=display="Product";logical;backup=1;wipeingui
 
 # GSI Target & SUPER (Fix 'unable to find partition size')
-/system_image    emmc    system                                         flags=display="System Image (GSI)";logical;flashimg=1;backup=0
+/system_image    emmc    system                                         flags=display="System Image";logical;flashimg=1;backup=0
 /vendor_image    emmc    vendor                                         flags=display="Vendor Image";logical;flashimg=1;backup=0
 /product_image   emmc    product                                        flags=display="Product Image";logical;flashimg=1;backup=0
 /super           emmc    /dev/block/bootdevice/by-name/super            flags=display="Super Partition";backup=1;flashimg=1
