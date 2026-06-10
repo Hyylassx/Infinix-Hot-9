@@ -1,37 +1,20 @@
-# mount point    fstype    device                                           flags
-# Logical Partitions (Super)
-system           ext4      system                                           wait,logical,first_stage_mount
-vendor           ext4      vendor                                           wait,logical,first_stage_mount
-product          ext4      product                                          wait,logical,first_stage_mount
+# <src>                                              <mnt_point>        <type>      <mnt_flags and options>                             <fs_mgr_flags>
+system                                               /system            ext4        ro                                                  wait,logical,first_stage_mount
+vendor                                               /vendor            ext4        ro                                                  wait,logical,first_stage_mount
+product                                              /product           ext4        ro                                                  wait,logical,first_stage_mount
 
-# Metadata & Data
-/metadata        ext4      /dev/block/platform/bootdevice/by-name/metadata  wait,formattable,first_stage_mount
-/data            f2fs      /dev/block/platform/bootdevice/by-name/userdata  wait,check,formattable,resize,encryptable=footer
-/cache           ext4      /dev/block/platform/bootdevice/by-name/cache     wait,check,formattable
+/dev/block/by-name/boot                              /boot              emmc        defaults                                            defaults
+/dev/block/by-name/recovery                          /recovery          emmc        defaults                                            defaults
+/dev/block/by-name/cache                             /cache             ext4        noatime,nosuid,nodev,noauto_da_alloc,discard        wait,check,formattable
+/dev/block/by-name/super                             /super             emmc        defaults                                            defaults
+/dev/block/by-name/metadata                          /metadata          ext4        noatime,nosuid,nodev,discard                        wait,formattable
 
-# Vendor/Protected Partitions
-/protect_f       ext4      /dev/block/platform/bootdevice/by-name/protect1  wait,check,formattable
-/protect_s       ext4      /dev/block/platform/bootdevice/by-name/protect2  wait,check,formattable
-/nvdata          ext4      /dev/block/platform/bootdevice/by-name/nvdata    wait,check,formattable
-/nvcfg           ext4      /dev/block/platform/bootdevice/by-name/nvcfg     wait,check,formattable
-/persist         ext4      /dev/block/platform/bootdevice/by-name/persist   wait,check,formattable
+# FIXED: Removed latemount and forced keydirectory paths
+/dev/block/by-name/userdata                          /data              f2fs        noatime,nosuid,nodev,discard,usrquota,grpquota      wait,check,formattable,fileencryption=aes-256-xts:aes-256-cts:v2
 
-# Boot & Recovery & Firmware
-/boot            emmc      /dev/block/platform/bootdevice/by-name/boot      defaults
-/recovery        emmc      /dev/block/platform/bootdevice/by-name/recovery  defaults
-/dtbo            emmc      /dev/block/platform/bootdevice/by-name/dtbo      defaults
-/vbmeta          emmc      /dev/block/platform/bootdevice/by-name/vbmeta    defaults
-/vbmeta_system   emmc      /dev/block/platform/bootdevice/by-name/vbmeta_system defaults
-/vbmeta_vendor   emmc      /dev/block/platform/bootdevice/by-name/vbmeta_vendor defaults
+/dev/block/by-name/persist                           /mnt/vendor/persist    ext4    noatime,nosuid,nodev                                wait,check,formattable
+/dev/block/by-name/frp                               /frp               emmc        defaults                                            defaults
+/dev/block/by-name/para                              /misc              emmc        defaults                                            defaults
 
-# Misc
-/misc            emmc      /dev/block/platform/bootdevice/by-name/para      defaults
-/logo            emmc      /dev/block/platform/bootdevice/by-name/logo      defaults
-/proinfo         emmc      /dev/block/platform/bootdevice/by-name/proinfo   defaults
-/nvram           emmc      /dev/block/platform/bootdevice/by-name/nvram     defaults
-/tee1            emmc      /dev/block/platform/bootdevice/by-name/tee1      defaults
-/tee2            emmc      /dev/block/platform/bootdevice/by-name/tee2      defaults
-
-# External Storage
-/external_sd     vfat      /dev/block/mmcblk1p1    /dev/block/mmcblk1       flags=display="MicroSD";storage;wipeingui;removable
-/usb-otg         vfat      /dev/block/sda1         /dev/block/sda           flags=display="USB-OTG";storage;wipeingui;removable
+/dev/block/mmcblk1p1                                 /external_sd       auto        defaults                                            defaults
+/dev/block/sda1                                      /usb_otg           auto        defaults                                            defaults
