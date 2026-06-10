@@ -20,8 +20,6 @@ PRODUCT_PACKAGES += \
     servicemanager \
     hwservicemanager \
     vndservicemanager \
-    libkeymaster_messages \
-    libkeymaster_portable \
     vold \
     vold_prepare_subdirs 
 
