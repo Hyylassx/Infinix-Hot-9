@@ -28,7 +28,3 @@ PRODUCT_PACKAGES += \
 # Force FBE Crypto Properties (Tells recovery it is FBE encrypted)
 PRODUCT_SYSTEM_DEFAULT_PROPERTIES += ro.crypto.state=encrypted
 PRODUCT_SYSTEM_DEFAULT_PROPERTIES += ro.crypto.type=file
-
-# Force DRM Graphics Properties (Tells recovery to use DRM instead of fbdev)
-PRODUCT_SYSTEM_DEFAULT_PROPERTIES += ro.hardware.hwcomposer=mt6765
-PRODUCT_SYSTEM_DEFAULT_PROPERTIES += ro.hardware.gralloc=mt6765
