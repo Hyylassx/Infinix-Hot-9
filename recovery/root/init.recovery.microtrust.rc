@@ -12,6 +12,13 @@ service teei_capi_2_0 /vendor/bin/hw/vendor.microtrust.hardware.capi@2.0-service
     setenv LD_LIBRARY_PATH /vendor/lib64:/vendor/lib:/system/lib64:/system/lib:/sbin
     seclabel u:r:recovery:s0
 
+service beanpod_check_keybox_service /vendor/bin/bp_kmsetkey_ca -c
+    class core
+    user root
+    group root
+    setenv LD_LIBRARY_PATH /vendor/lib64:/vendor/lib:/system/lib64:/system/lib:/sbin
+    seclabel u:r:recovery:s0
+
 service keymaster-attestation /vendor/bin/hw/vendor.mediatek.hardware.keymaster_attestation@1.1-service
     class core
     user root
