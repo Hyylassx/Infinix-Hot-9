@@ -16,9 +16,9 @@ PRODUCT_COPY_FILES += \
     $(DEVICE_PATH)/recovery/root/system/lib/android.hardware.gatekeeper@1.0.so:root/system/lib/android.hardware.gatekeeper@1.0.so \
     $(DEVICE_PATH)/recovery/root/system/lib/android.hardware.keymaster@3.0.so:root/system/lib/android.hardware.keymaster@3.0.so \
     $(DEVICE_PATH)/recovery/root/system/lib/android.hardware.keymaster@4.0.so:root/system/lib/android.hardware.keymaster@4.0.so \
-    $(DEVICE_PATH)/recovery/root/system/lib/android.hardware.hidl.allocator@1.0.so:root/system/lib/android.hardware.hidl.allocator@1.0.so \
-    $(DEVICE_PATH)/recovery/root/system/lib/android.hardware.hidl.memory.token@1.0.so:root/system/lib/android.hardware.hidl.memory.token@1.0.so \
-    $(DEVICE_PATH)/recovery/root/system/lib/android.hardware.hidl.memory@1.0.so:root/system/lib/android.hardware.hidl.memory@1.0.so \
+    $(DEVICE_PATH)/recovery/root/system/lib/android.hidl.allocator@1.0.so:root/system/lib/android.hidl.allocator@1.0.so \
+    $(DEVICE_PATH)/recovery/root/system/lib/android.hidl.memory.token@1.0.so:root/system/lib/android.hidl.memory.token@1.0.so \
+    $(DEVICE_PATH)/recovery/root/system/lib/android.hidl.memory@1.0.so:root/system/lib/android.hidl.memory@1.0.so \
     $(DEVICE_PATH)/recovery/root/system/lib/libgatekeeper.so:root/system/lib/libgatekeeper.so \
     $(DEVICE_PATH)/recovery/root/system/lib/libhidlmemory.so:root/system/lib/libhidlmemory.so \
     $(DEVICE_PATH)/recovery/root/system/lib/libhwbinder.so:root/system/lib/libhwbinder.so \
@@ -33,9 +33,9 @@ PRODUCT_COPY_FILES += \
     $(DEVICE_PATH)/recovery/root/system/lib64/android.hardware.gatekeeper@1.0.so:root/system/lib64/android.hardware.gatekeeper@1.0.so \
     $(DEVICE_PATH)/recovery/root/system/lib64/android.hardware.keymaster@3.0.so:root/system/lib64/android.hardware.keymaster@3.0.so \
     $(DEVICE_PATH)/recovery/root/system/lib64/android.hardware.keymaster@4.0.so:root/system/lib64/android.hardware.keymaster@4.0.so \
-    $(DEVICE_PATH)/recovery/root/system/lib64/android.hardware.hidl.allocator@1.0.so:root/system/lib64/android.hardware.hidl.allocator@1.0.so \
-    $(DEVICE_PATH)/recovery/root/system/lib64/android.hardware.hidl.memory.token@1.0.so:root/system/lib64/android.hardware.hidl.memory.token@1.0.so \
-    $(DEVICE_PATH)/recovery/root/system/lib64/android.hardware.hidl.memory@1.0.so:root/system/lib64/android.hardware.hidl.memory@1.0.so \
+    $(DEVICE_PATH)/recovery/root/system/lib64/android.hidl.allocator@1.0.so:root/system/lib64/android.hidl.allocator@1.0.so \
+    $(DEVICE_PATH)/recovery/root/system/lib64/android.hidl.memory.token@1.0.so:root/system/lib64/android.hidl.memory.token@1.0.so \
+    $(DEVICE_PATH)/recovery/root/system/lib64/android.hidl.memory@1.0.so:root/system/lib64/android.hidl.memory@1.0.so \
     $(DEVICE_PATH)/recovery/root/system/lib64/libgatekeeper.so:root/system/lib64/libgatekeeper.so \
     $(DEVICE_PATH)/recovery/root/system/lib64/libhidlmemory.so:root/system/lib64/libhidlmemory.so \
     $(DEVICE_PATH)/recovery/root/system/lib64/libhwbinder.so:root/system/lib64/libhwbinder.so \
