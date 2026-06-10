@@ -1,16 +1,11 @@
 import /init.recovery.microtrust.rc
 
 on init
-    # Pembuatan Direktori Inti & Pre-create Microtrust TEE virtual RPMB paths
+    # Pembuatan Direktori Inti & Temp
     mkdir /tmp 0777 root root
-    mkdir /data 0771 system system
-    mkdir /data/vendor 0771 system system
-    mkdir /data/vendor/thh 0755 system system
-    mkdir /data/vendor/thh/tee_00 0755 system system
     restorecon /tmp
 
-    # CRITICAL FIX: Mount cgroups! Without this, ALL HAL services crash instantly
-    # with "failed to write pid to /dev/cpuset/foreground/tasks"
+    # CRITICAL FIX: Mount cgroups! Tanpa ini, semua layanan HAL akan crash instan
     mkdir /dev/cpuset 0750 root system
     mount cgroup none /dev/cpuset cpuset
     mkdir /dev/cpuset/foreground 0750 root system
@@ -22,33 +17,31 @@ on init
     mkdir /dev/cg2_bpf 0750 root system
     mount cgroup2 none /dev/cg2_bpf nodev noexec nosuid
 
+    # USB Configurationfs
     setprop sys.usb.configfs 1
     setprop sys.usb.ffs.aio_compat 1
     setprop sys.usb.controller musb-hdrc
     setprop ro.boot.usbcontroller musb-hdrc
     
-    # Ekspor Jalur Pustaka Dinamis
+    # Ekspor Jalur Pustaka Dinamis (Wajib Menyertakan /sbin)
     export LD_LIBRARY_PATH /system/lib64:/vendor/lib64:/system/lib:/vendor/lib:/sbin
 
 on fs
     write /sys/class/udc/musb-hdrc/device/cmode 1
 
-    # 2. Jalankan Tiga Layanan IPC Binder Utama untuk Android 10
+    # Jalankan Layanan IPC Binder Utama (Esensial untuk Dekripsi)
     start servicemanager
     start hwservicemanager
     start vndservicemanager
 
 on post-fs
-    # Tautan Simbolik Preloader (Khas Chipset MediaTek)
+    # Tautan Simbolik Preloader (Khas Chipset MediaTek MT6765)
     symlink /dev/block/sda /dev/block/mmcblk0boot0
     symlink /dev/block/sdb /dev/block/mmcblk0boot1
     symlink /dev/block/mmcblk0boot0 /dev/block/platform/bootdevice/by-name/preloader_a
     symlink /dev/block/mmcblk0boot1 /dev/block/platform/bootdevice/by-name/preloader_b
 
 on boot
-    # CRITICAL FIX: Stop keystore2 crash loop (Not needed for Android 10 recovery)
-    stop keystore2
-
     # Perizinan Input Sentuh (Touchscreen Driver)
     chmod 0666 /dev/input/event0
     chmod 0666 /dev/input/event1
@@ -63,15 +56,11 @@ on boot
     chown root root /dev/input/event4
     chown root root /dev/input/event5
 
-    # START DRM SERVICES (Fixes the frozen splash screen!)
-    start allocator-2-0
-    start hwcomposer-2-1
-
 on post-fs-data
     # Nyalakan Logging Sistem Pemulihan
     start logd
 
-# DEFINISI CORE SERVICES ANDROID 10 & TWRP
+# DEFINISI CORE SERVICES (Sesuai Standar Ramdisk Base Android 12)
 
 service servicemanager /system/bin/servicemanager
     class core
@@ -96,25 +85,10 @@ service logcat /system/bin/logcat -b all -v threadtime -f /tmp/logcat.txt
     disabled
     seclabel u:r:recovery:s0
 
-# CRITICAL FIX: FBE Decryption REQUIRES vold. 
-# The "start vold" command in microtrust.rc depends on this definition.
+# Vold didefinisikan agar siap dipanggil oleh sistem internal OrangeFox
 service vold /system/bin/vold
     class core
     user root
     group root mount reserved_disk
     disabled
     seclabel u:r:vold:s0
-
-# DRM GRAPHICS SERVICES
-
-service allocator-2-0 /vendor/bin/hw/android.hardware.graphics.allocator@2.0-service
-    class main
-    user system
-    group graphics drmrpc
-    disabled
-
-service hwcomposer-2-1 /vendor/bin/hw/android.hardware.graphics.composer@2.1-service
-    class main
-    user system
-    group graphics drmrpc
-    disabled
