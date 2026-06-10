@@ -94,9 +94,7 @@ PRODUCT_COPY_FILES += \
     $(DEVICE_PATH)/recovery/root/vendor/lib64/hw/libSoftGatekeeper.so:$(TARGET_COPY_OUT_VENDOR)/lib64/hw/libSoftGatekeeper.so \
     $(DEVICE_PATH)/recovery/root/vendor/lib64/hw/vendor.mediatek.hardware.keymaster_attestation@1.1-impl.so:$(TARGET_COPY_OUT_VENDOR)/lib64/hw/vendor.mediatek.hardware.keymaster_attestation@1.1-impl.so
 
-# ========================================================================
 # TRUSTED APPLICATIONS (TA Files)
-# ========================================================================
 PRODUCT_COPY_FILES += \
     $(DEVICE_PATH)/recovery/root/vendor/thh/ta/7778c03fc30c4dd0a319ea29643d4d4b.ta:$(TARGET_COPY_OUT_VENDOR)/thh/ta/7778c03fc30c4dd0a319ea29643d4d4b.ta \
     $(DEVICE_PATH)/recovery/root/vendor/thh/ta/7778c03fc30c4dd0a319ea29643d4dc0.ta:$(TARGET_COPY_OUT_VENDOR)/thh/ta/7778c03fc30c4dd0a319ea29643d4dc0.ta \
@@ -105,9 +103,7 @@ PRODUCT_COPY_FILES += \
     $(DEVICE_PATH)/recovery/root/vendor/thh/ta/c1882f2d885e4e13a8c8e2622461b2fa.ta:$(TARGET_COPY_OUT_VENDOR)/thh/ta/c1882f2d885e4e13a8c8e2622461b2fa.ta \
     $(DEVICE_PATH)/recovery/root/vendor/thh/ta/d91f322ad5a441d5955110eda3272fc0.ta:$(TARGET_COPY_OUT_VENDOR)/thh/ta/d91f322ad5a441d5955110eda3272fc0.ta
 
-# ========================================================================
 # VOLD & CRYPTO PROPERTIES
-# ========================================================================
 PRODUCT_SYSTEM_DEFAULT_PROPERTIES += ro.twrp.boot=1
 PRODUCT_SYSTEM_DEFAULT_PROPERTIES += ro.crypto.state=encrypted
 PRODUCT_SYSTEM_DEFAULT_PROPERTIES += ro.crypto.type=file
