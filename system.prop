@@ -9,14 +9,9 @@ persist.sys.isUsbOtgEnabled=true
 ro.sys.usb.mtp.whql.enable=0
 ro.sys.usb.storage.type=mtp
 sys.usb.ffs.aio_compat=true
-
-# Paksa Sistem Menciutkan Resolusi UI (Ubah dari 320 ke 220)
-ro.sf.lcd_density=220
-ro.tw.density=220
-
-# Nonaktifkan kalkulasi otomatis layout OrangeFox yang bikin bug di FBDev
+ro.sf.lcd_density=180
+ro.tw.density=180
 ro.orangefox.disable_conv_layout=1
-
 ro.board.platform=mt6765
 ro.hardware=mt6765
 ro.vendor.mediatek.platform=MT6765
@@ -25,3 +20,10 @@ ro.odm.tee=2
 ro.vendor.mtk_microtrust_tee_support=1
 ro.treble.enabled=true
 ro.boot.dynamic_partitions=true
+ro.crypto.volume.contents_mode=aes-256-xts
+ro.crypto.volume.filenames_mode=aes-256-cts
+ro.crypto.fbe_crypto_fields_supported=true
+ro.crypto.set_unencrypted_property=true
+ro.crypto.state=encrypted
+ro.crypto.type=file
+ro.crypto.metadata_init_enabled=true
