@@ -19,6 +19,7 @@ PRODUCT_COPY_FILES += \
     $(DEVICE_PATH)/recovery/root/system/lib/libhwbinder.so:root/system/lib/libhwbinder.so \
     $(DEVICE_PATH)/recovery/root/system/lib/libhidlmemory.so:root/system/lib/libhidlmemory.so \
     $(DEVICE_PATH)/recovery/root/system/lib/libgatekeeper.so:root/system/lib/libgatekeeper.so \
+    $(DEVICE_PATH)/recovery/root/system/bin/wait_for_keymaster:root/system/bin/wait_for_keymaster \
     $(DEVICE_PATH)/recovery/root/system/lib/libkeymaster_messages.so:root/system/lib/libkeymaster_messages.so \
     $(DEVICE_PATH)/recovery/root/system/lib/libkeymaster_portable.so:root/system/lib/libkeymaster_portable.so \
     $(DEVICE_PATH)/recovery/root/system/lib/libsoftkeymasterdevice.so:root/system/lib/libsoftkeymasterdevice.so \
