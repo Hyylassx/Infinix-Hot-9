@@ -1,5 +1,5 @@
 # Infinix X655C (MT6765) - Recovery FSTAB MediaTek Clean Build
-# Optimized for OrangeFox / TWRP - Decryption Disabled (No More Encryption)
+# Optimized for OrangeFox / TWRP - Adaptive Encryption Standard
 
 # LOGICAL PARTITIONS (Dynamic Partitions Standard)
 /system          ext4    system                                         flags=display="System";logical;backup=1;wipeingui
@@ -12,9 +12,9 @@
 /product_image   emmc    product                                        flags=display="Product Image";logical;flashimg=1;backup=0
 /super           emmc    /dev/block/by-name/super                       flags=display="Super Partition";backup=1;flashimg=1
 
-# Core Storages (Fix Data Encrypted & Invalid Argument)
+# Core Storages
 /metadata        ext4    /dev/block/by-name/md_udc                      flags=backup=1;display="Metadata";canbewiped
-/data            f2fs    /dev/block/by-name/userdata                     flags=backup=1;wipeingui;display="Data";canbewiped
+/data            f2fs    /dev/block/by-name/userdata                    flags=backup=1;wipeingui;display="Data";fileencryption=aes-256-xts:aes-256-cts
 /cache           ext4    /dev/block/by-name/cache                       flags=backup=1;wipeingui;display="Cache";canbewiped
 
 # Boot & Recovery
