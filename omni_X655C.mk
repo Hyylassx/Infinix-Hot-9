@@ -18,6 +18,8 @@ PRODUCT_USE_DYNAMIC_PARTITIONS := true
 # Crypto Packages
 PRODUCT_PACKAGES += \
     servicemanager \
+    qcom_decrypt \
+    qcom_decrypt_fbe \
     hwservicemanager \
     vndservicemanager \
     vold \
