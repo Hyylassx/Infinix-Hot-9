@@ -5,14 +5,16 @@ on init
     mkdir /tmp 0777 root root
     restorecon /tmp
 
-    # CRITICAL FIX: Mount cgroups! Tanpa ini, semua layanan HAL akan crash instan
+    # CRITICAL FIX: Mount cgroups komplit untuk Android 12 HAL & Keystore 2
     mkdir /dev/cpuset 0750 root system
     mount cgroup none /dev/cpuset cpuset
     mkdir /dev/cpuset/foreground 0750 root system
     mkdir /dev/cpuset/background 0750 root system
+    mkdir /dev/cpuset/system-background 0750 root system
     mkdir /dev/cpuset/top-app 0750 root system
     write /dev/cpuset/foreground/tasks 1
     write /dev/cpuset/background/tasks 1
+    write /dev/cpuset/system-background/tasks 1
 
     mkdir /dev/cg2_bpf 0750 root system
     mount cgroup2 none /dev/cg2_bpf nodev noexec nosuid
@@ -60,6 +62,10 @@ on post-fs-data
     # Nyalakan Logging Sistem Pemulihan
     start logd
 
+# TRIGGER TRIGGER DEKRIPSI SINKRONISASI
+on property:init.svc.hwservicemanager=running
+    start keystore2
+
 # DEFINISI CORE SERVICES (Sesuai Standar Ramdisk Base Android 12)
 
 service servicemanager /system/bin/servicemanager
@@ -92,3 +98,12 @@ service vold /system/bin/vold
     group root mount reserved_disk
     disabled
     seclabel u:r:vold:s0
+
+# CRITICAL ANDROID 12 DECRYPTION COMPONENT: Keystore 2.0 Daemon
+service keystore2 /system/bin/keystore2 /tmp/misc/keystore
+    class main
+    user root
+    group root readproc log
+    writepid /dev/cpuset/foreground/tasks
+    disabled
+    seclabel u:r:recovery:s0
