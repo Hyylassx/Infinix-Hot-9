@@ -1,9 +1,10 @@
 # Infinix X655C (MT6765) - TWRP Flags Custom Mapping
 # Supplementary flags for OrangeFox GUI features - Unified Adaptive (A10 - A14)
 
-# Core Partition Overrides (Adaptive Decryption Framework)
-/metadata         ext4      /dev/block/by-name/md_udc        flags=display="Metadata";backup=1;wrappedkey;keydirectory=/metadata/vold/metadata_encryption
+# Core Partition Overrides (Adaptive Decryption Framework) (Dual-File-System Mapping)
+/metadata         ext4      /dev/block/by-name/md_udc        flags=backup=1;display="Metadata"
 /data             f2fs      /dev/block/by-name/userdata       flags=display="Data";backup=1;wipeingui;canbewiped
+/data             ext4      /dev/block/by-name/userdata       flags=display="Data";backup=1;wipeingui;canbewiped
 /cache            ext4      /dev/block/by-name/cache          flags=display="Cache";backup=1;wipeingui
 
 # Flashable Images Components (GUI Flashable Image Enabled)
