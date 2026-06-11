@@ -5,7 +5,7 @@ on init
     mkdir /tmp 0777 root root
     restorecon /tmp
 
-    # CRITICAL FIX: Mount cgroups komplit untuk Android 12 HAL & Keystore 2
+    # CRITICAL FIX ANDROID 12: Struktur Cgroups & Cpuset murni
     mkdir /dev/cpuset 0750 root system
     mount cgroup none /dev/cpuset cpuset
     mkdir /dev/cpuset/foreground 0750 root system
@@ -31,7 +31,7 @@ on init
 on fs
     write /sys/class/udc/musb-hdrc/device/cmode 1
 
-    # Jalankan Layanan IPC Binder Utama (Esensial untuk Dekripsi)
+    # Jalankan Tiga Pilar Binder Serentak dengan Izin Sinkron (UID 1000)
     start servicemanager
     start hwservicemanager
     start vndservicemanager
@@ -43,6 +43,9 @@ on post-fs
     symlink /dev/block/mmcblk0boot0 /dev/block/platform/bootdevice/by-name/preloader_a
     symlink /dev/block/mmcblk0boot1 /dev/block/platform/bootdevice/by-name/preloader_b
 
+    # Mengunci perizinan root file system demi kelancaran SELinux
+    mount rootfs rootfs / ro remount
+
 on boot
     # Perizinan Input Sentuh (Touchscreen Driver)
     chmod 0666 /dev/input/event0
@@ -51,27 +54,48 @@ on boot
     chmod 0666 /dev/input/event3
     chmod 0666 /dev/input/event4
     chmod 0666 /dev/input/event5
-    chown root root /dev/input/event0
-    chown root root /dev/input/event1
-    chown root root /dev/input/event2
-    chown root root /dev/input/event3
-    chown root root /dev/input/event4
-    chown root root /dev/input/event5
 
 on post-fs-data
-    # Nyalakan Logging Sistem Pemulihan
     start logd
 
-# TRIGGER TRIGGER DEKRIPSI SINKRONISASI
-on property:init.svc.hwservicemanager=running
-    start keystore2
+# MATRIKS STRATEGI DAN RANTAI PEMICU DEKRIPSI (DOMINO EFFECT)
 
-# DEFINISI CORE SERVICES (Sesuai Standar Ramdisk Base Android 12)
+# 1. Begitu Keymaster hardware MTK lu running, panggil satpam pencari kunci
+on property:init.svc.vendor.keymaster-4-0-beanpod=running
+    start wait_for_keymaster
+
+# 2. Begitu wait_for_keymaster sukses konek ke TEE (status berubah jadi stopped),
+#    Baru nyalakan brankas Keystore2 dan Gatekeeperd serentak!
+on property:init.svc.wait_for_keymaster=stopped
+    start keystore2
+    start gatekeeperd
+
+# RECOVERY OPTIMIZED CORE SERVICES (DIADAPTASI DARI STOCK DATA)
 
 service servicemanager /system/bin/servicemanager
     class core
     user root
     group root readproc
+    disabled
+    seclabel u:r:recovery:s0
+
+service hwservicemanager /system/bin/hwservicemanager
+    class siginallog
+    user 1000
+    group 1000 readproc
+    critical
+    onrestart setprop hwservicemanager.ready false
+    writepid /dev/cpuset/system-background/tasks
+    shutdown critical
+    disabled
+    seclabel u:r:recovery:s0
+
+service vndservicemanager /vendor/bin/vndservicemanager /dev/vndbinder
+    class core
+    user 1000
+    group 1000 readproc
+    writepid /dev/cpuset/system-background/tasks
+    shutdown critical
     disabled
     seclabel u:r:recovery:s0
 
@@ -84,26 +108,43 @@ service logd /system/bin/logd
     writepid /dev/cpuset/system-background/tasks
     seclabel u:r:logd:s0
 
-service logcat /system/bin/logcat -b all -v threadtime -f /tmp/logcat.txt
-    class boot
-    user root
-    group root
-    disabled
-    seclabel u:r:recovery:s0
-
-# Vold didefinisikan agar siap dipanggil oleh sistem internal OrangeFox
-service vold /system/bin/vold
+# Vold disempurnakan dengan argumen konteks blkid & fsck murni bawaan device lu!
+service vold /system/bin/vold \
+        --blkid_context=u:r:blkid:s0 --blkid_untrusted_context=u:r:blkid_untrusted:s0 \
+        --fsck_context=u:r:fsck:s0 --fsck_untrusted_context=u:r:fsck_untrusted:s0
     class core
-    user root
-    group root mount reserved_disk
+    ioprio be 2
+    writepid /dev/cpuset/foreground/tasks
+    shutdown critical
+    group root reserved_disk
     disabled
     seclabel u:r:vold:s0
 
-# CRITICAL ANDROID 12 DECRYPTION COMPONENT: Keystore 2.0 Daemon
-service keystore2 /system/bin/keystore2 /tmp/misc/keystore
+# Gatekeeperd dioptimalkan memakai UID/GID 1000 + grup drmrpc pabrikan
+service gatekeeperd /system/bin/gatekeeperd /data/misc/gatekeeper
     class main
-    user root
-    group root readproc log
+    user 1000
+    group 1000 drmrpc
+    writepid /dev/cpuset/foreground/tasks
+    disabled
+    seclabel u:r:recovery:s0
+
+# Satpam pelindung timing agar keystore2 tidak start prematur
+service wait_for_keymaster /system/bin/wait_for_keymaster
+    class main
+    user 1000
+    group 1000 system
+    priority -20
+    ioprio rt 0
+    disabled
+    oneshot
+    seclabel u:r:recovery:s0
+
+# Keystore2 disuntik grup 'drmrpc, readproc, log' murni hasil bedah stock rom lu!
+service keystore2 /system/bin/keystore2 /data/misc/keystore
+    class main
+    user 1000
+    group 1000 drmrpc readproc log
     writepid /dev/cpuset/foreground/tasks
     disabled
     seclabel u:r:recovery:s0
