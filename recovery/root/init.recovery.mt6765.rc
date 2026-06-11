@@ -5,7 +5,7 @@ on init
     mkdir /tmp 0777 root root
     restorecon /tmp
 
-    # CRITICAL FIX ANDROID 12: Struktur Cgroups & Cpuset murni
+    # CRITICAL FIX UNIFIED: Struktur Cgroups & Cpuset murni
     mkdir /dev/cpuset 0750 root system
     mount cgroup none /dev/cpuset cpuset
     mkdir /dev/cpuset/foreground 0750 root system
@@ -31,10 +31,9 @@ on init
 on fs
     write /sys/class/udc/musb-hdrc/device/cmode 1
 
-    # Jalankan Tiga Pilar Binder Serentak dengan Izin Sinkron (UID 1000)
+    # Jalankan binder dasar serentak
     start servicemanager
     start hwservicemanager
-    start vndservicemanager
 
 on post-fs
     # Tautan Simbolik Preloader (Khas Chipset MediaTek MT6765)
@@ -58,19 +57,54 @@ on boot
 on post-fs-data
     start logd
 
-# MATRIKS STRATEGI DAN RANTAI PEMICU DEKRIPSI (DOMINO EFFECT)
+# MATRIKS STRATEGI DAN RANTAI PEMICU DINAMIS (A10 - A14)
 
-# 1. Begitu Keymaster hardware MTK lu running, panggil satpam pencari kunci
-on property:init.svc.vendor.keymaster-4-0-beanpod=running
+# Jalankan vold utama begitu TEE Microtrust active
+on property:init.svc.teei_daemon=running
+    start vold
+
+# SKENARIO A: JALUR ANDROID 10 (ROM Bawaan XOS - SDK 29)
+on property:init.svc.vendor.keymaster-4-0-beanpod=running && property:ro.build.version.sdk=29
+    stop keystore2
+    stop wait_for_keymaster
+    start keystore
+    start gatekeeperd
+
+# SKENARIO B: JALUR ANDROID 12 S/D 14 (Custom ROM - SDK 31 ke atas)
+on property:init.svc.vendor.keymaster-4-0-beanpod=running && property:ro.build.version.sdk=31
+    start vndservicemanager
     start wait_for_keymaster
 
-# 2. Begitu wait_for_keymaster sukses konek ke TEE (status berubah jadi stopped),
-#    Baru nyalakan brankas Keystore2 dan Gatekeeperd serentak!
-on property:init.svc.wait_for_keymaster=stopped
+on property:init.svc.vendor.keymaster-4-0-beanpod=running && property:ro.build.version.sdk=32
+    start vndservicemanager
+    start wait_for_keymaster
+
+on property:init.svc.vendor.keymaster-4-0-beanpod=running && property:ro.build.version.sdk=33
+    start vndservicemanager
+    start wait_for_keymaster
+
+on property:init.svc.vendor.keymaster-4-0-beanpod=running && property:ro.build.version.sdk=34
+    start vndservicemanager
+    start wait_for_keymaster
+
+# Eksekusi Keystore2 hanya untuk Android 12 ke atas setelah satpam selesai
+on property:init.svc.wait_for_keymaster=stopped && property:ro.build.version.sdk=31
     start keystore2
     start gatekeeperd
 
-# RECOVERY OPTIMIZED CORE SERVICES (DIADAPTASI DARI STOCK DATA)
+on property:init.svc.wait_for_keymaster=stopped && property:ro.build.version.sdk=32
+    start keystore2
+    start gatekeeperd
+
+on property:init.svc.wait_for_keymaster=stopped && property:ro.build.version.sdk=33
+    start keystore2
+    start gatekeeperd
+
+on property:init.svc.wait_for_keymaster=stopped && property:ro.build.version.sdk=34
+    start keystore2
+    start gatekeeperd
+
+# RECOVERY OPTIMIZED CORE SERVICES DEFINITION
 
 service servicemanager /system/bin/servicemanager
     class core
@@ -90,7 +124,8 @@ service hwservicemanager /system/bin/hwservicemanager
     disabled
     seclabel u:r:recovery:s0
 
-service vndservicemanager /vendor/bin/vndservicemanager /dev/vndbinder
+# Jalankan vndservicemanager dari tempat aslinya di ramdisk lu (/system/bin)
+service vndservicemanager /system/bin/vndservicemanager /dev/vndbinder
     class core
     user 1000
     group 1000 readproc
@@ -108,7 +143,6 @@ service logd /system/bin/logd
     writepid /dev/cpuset/system-background/tasks
     seclabel u:r:logd:s0
 
-# Vold disempurnakan dengan argumen konteks blkid & fsck murni bawaan device lu!
 service vold /system/bin/vold \
         --blkid_context=u:r:blkid:s0 --blkid_untrusted_context=u:r:blkid_untrusted:s0 \
         --fsck_context=u:r:fsck:s0 --fsck_untrusted_context=u:r:fsck_untrusted:s0
@@ -120,7 +154,6 @@ service vold /system/bin/vold \
     disabled
     seclabel u:r:vold:s0
 
-# Gatekeeperd dioptimalkan memakai UID/GID 1000 + grup drmrpc pabrikan
 service gatekeeperd /system/bin/gatekeeperd /data/misc/gatekeeper
     class main
     user 1000
@@ -129,7 +162,24 @@ service gatekeeperd /system/bin/gatekeeperd /data/misc/gatekeeper
     disabled
     seclabel u:r:recovery:s0
 
-# Satpam pelindung timing agar keystore2 tidak start prematur
+# 🔑 LAYANAN WARISAN: Keystore Tradisional Android 10
+service keystore /system/bin/keystore /data/misc/keystore
+    class main
+    user keystore
+    group keystore system stream
+    writepid /dev/cpuset/foreground/tasks
+    disabled
+    seclabel u:r:recovery:s0
+
+# 🔑 LAYANAN MODEREN: Keystore2 Rust Android 12 - 14
+service keystore2 /system/bin/keystore2 /data/misc/keystore
+    class main
+    user 1000
+    group 1000 drmrpc readproc log
+    writepid /dev/cpuset/foreground/tasks
+    disabled
+    seclabel u:r:recovery:s0
+
 service wait_for_keymaster /system/bin/wait_for_keymaster
     class main
     user 1000
@@ -138,13 +188,4 @@ service wait_for_keymaster /system/bin/wait_for_keymaster
     ioprio rt 0
     disabled
     oneshot
-    seclabel u:r:recovery:s0
-
-# Keystore2 disuntik grup 'drmrpc, readproc, log' murni hasil bedah stock rom lu!
-service keystore2 /system/bin/keystore2 /data/misc/keystore
-    class main
-    user 1000
-    group 1000 drmrpc readproc log
-    writepid /dev/cpuset/foreground/tasks
-    disabled
     seclabel u:r:recovery:s0
