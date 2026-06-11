@@ -13,13 +13,12 @@
 /super           emmc    /dev/block/by-name/super                       flags=display="Super Partition";backup=1;flashimg=1
 
 # Core Storages (Unified & Adaptive Encryption Standard)
-/metadata        ext4    /dev/block/by-name/md_udc                      flags=backup=1;display="Metadata";wrappedkey;keydirectory=/metadata/vold/metadata_encryption
+/metadata        ext4    /dev/block/by-name/md_udc                      flags=backup=1;display="Metadata"
 /cache           ext4    /dev/block/by-name/cache                       flags=backup=1;wipeingui;display="Cache";canbewiped
 
 # 🔑 DATA PARTITION MATRIX (Skenario Ganda: Otomatis Menyesuaikan Enkripsi ROM)
-/data            f2fs    /dev/block/by-name/userdata                    flags=backup=1;wipeingui;display="Data";fileencryption=aes-256-xts:aes-256-cts:v1
-/data            ext4    /dev/block/by-name/userdata                    flags=backup=1;wipeingui;display="Data";encryptable=footer
-
+/data            f2fs    /dev/block/by-name/userdata                    flags=fileencryption=aes-256-xts:aes-256-cts:v2+wrappedkey;keydirectory=/metadata/vold/metadata_encryption;backup=1;wipeingui;display="Data"
+/data            ext4    /dev/block/by-name/userdata                    flags=fileencryption=aes-256-xts:aes-256-cts:v2+wrappedkey;keydirectory=/metadata/vold/metadata_encryption;backup=1;wipeingui;display="Data"
 # Boot & Recovery
 /boot            emmc    /dev/block/by-name/boot                        flags=backup=1;display="Boot";flashimg=1
 /recovery        emmc    /dev/block/by-name/recovery                    flags=backup=1;display="Recovery";flashimg=1
