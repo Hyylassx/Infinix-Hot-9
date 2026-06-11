@@ -1,5 +1,5 @@
 # Infinix X655C (MT6765) - Recovery FSTAB MediaTek Clean Build
-# Optimized for OrangeFox / TWRP - Adaptive Encryption Standard
+# Optimized for OrangeFox / TWRP - Unified Adaptive Encryption Standard (A10 - A14)
 
 # LOGICAL PARTITIONS (Dynamic Partitions Standard)
 /system          ext4    system                                         flags=display="System";logical;flashimg=1;backup=1;wipeingui
@@ -12,10 +12,13 @@
 /product_image   emmc    product                                        flags=display="Product Image";logical;flashimg=1;backup=0
 /super           emmc    /dev/block/by-name/super                       flags=display="Super Partition";backup=1;flashimg=1
 
-# Core Storages
-/metadata        ext4    /dev/block/by-name/md_udc                      flags=backup=1;display="Metadata";canbewiped
-/data            f2fs    /dev/block/by-name/userdata                    flags=backup=1;wipeingui;display="Data";fileencryption=aes-256-xts:aes-256-cts
+# Core Storages (Unified & Adaptive Encryption Standard)
+/metadata        ext4    /dev/block/by-name/md_udc                      flags=backup=1;display="Metadata";wrappedkey;keydirectory=/metadata/vold/metadata_encryption
 /cache           ext4    /dev/block/by-name/cache                       flags=backup=1;wipeingui;display="Cache";canbewiped
+
+# 🔑 DATA PARTITION MATRIX (Skenario Ganda: Otomatis Menyesuaikan Enkripsi ROM)
+/data            f2fs    /dev/block/by-name/userdata                    flags=backup=1;wipeingui;display="Data";fileencryption=aes-256-xts:aes-256-cts:v1
+/data            ext4    /dev/block/by-name/userdata                    flags=backup=1;wipeingui;display="Data";encryptable=footer
 
 # Boot & Recovery
 /boot            emmc    /dev/block/by-name/boot                        flags=backup=1;display="Boot";flashimg=1
