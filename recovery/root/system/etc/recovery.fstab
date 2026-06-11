@@ -2,9 +2,9 @@
 # Optimized for OrangeFox / TWRP - Adaptive Encryption Standard
 
 # LOGICAL PARTITIONS (Dynamic Partitions Standard)
-/system          ext4    system                                         flags=display="System";logical;backup=1;wipeingui
-/vendor          ext4    vendor                                         flags=display="Vendor";logical;backup=1;wipeingui
-/product         ext4    product                                        flags=display="Product";logical;backup=1;wipeingui
+/system          ext4    system                                         flags=display="System";logical;flashimg=1;backup=1;wipeingui
+/vendor          ext4    vendor                                         flags=display="Vendor";logical;flashimg=1;backup=1;wipeingui
+/product         ext4    product                                        flags=display="Product";logical;flashimg=1;backup=1;wipeingui
 
 # GSI Target & SUPER (Fix 'unable to find partition size')
 /system_image    emmc    system                                         flags=display="System Image";logical;flashimg=1;backup=0
