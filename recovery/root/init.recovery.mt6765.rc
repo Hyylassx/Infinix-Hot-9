@@ -55,7 +55,7 @@ on boot
 on post-fs-data
     start logd
 
-# MATRIKS STRATEGI DAN RANTAI PEMICU DINAMIS (A10 - A14)
+# MATRIKS STRATEGI DAN RANTAI PEMICU DINAMIS
 
 # Jalankan vold utama begitu TEE Microtrust active
 on property:init.svc.teei_daemon=running
@@ -63,12 +63,18 @@ on property:init.svc.teei_daemon=running
 
 # SKENARIO A: JALUR ANDROID 10 (ROM Bawaan XOS - SDK 29)
 on property:init.svc.vendor.keymaster-4-0-beanpod=running && property:ro.build.version.sdk=29
-    stop keystore2
-    stop wait_for_keymaster
     start keystore
     start gatekeeperd
 
-# SKENARIO B: JALUR ANDROID 12 S/D 14 (Custom ROM - SDK 31 ke atas)
+# SKENARIO B: JALUR ANDROID 11 (SDK 30)
+on property:init.svc.vendor.keymaster-4-0-beanpod=running && property:ro.build.version.sdk=30
+    start wait_for_keymaster
+
+on property:init.svc.wait_for_keymaster=stopped && property:ro.build.version.sdk=30
+    start keystore
+    start gatekeeperd
+
+# SKENARIO C: JALUR ANDROID 12 S/D 14 (Custom ROM - SDK 31 ke atas)
 on property:init.svc.vendor.keymaster-4-0-beanpod=running && property:ro.build.version.sdk=31
     start vndservicemanager
     start wait_for_keymaster
@@ -85,7 +91,7 @@ on property:init.svc.vendor.keymaster-4-0-beanpod=running && property:ro.build.v
     start vndservicemanager
     start wait_for_keymaster
 
-# Eksekusi Keystore2 hanya untuk Android 12 ke atas setelah satpam selesai
+# Eksekusi Keystore2 setelah satpam keymaster selesai (Khusus A12 ke atas)
 on property:init.svc.wait_for_keymaster=stopped && property:ro.build.version.sdk=31
     start keystore2
     start gatekeeperd
@@ -102,7 +108,9 @@ on property:init.svc.wait_for_keymaster=stopped && property:ro.build.version.sdk
     start keystore2
     start gatekeeperd
 
-# RECOVERY OPTIMIZED CORE SERVICES DEFINITION
+#+---------------------------------------------+#
+# RECOVERY OPTIMIZED CORE SERVICES DEFINITION #
+#+---------------------------------------------+#
 
 service servicemanager /system/bin/servicemanager
     class core
@@ -122,7 +130,6 @@ service hwservicemanager /system/bin/hwservicemanager
     disabled
     seclabel u:r:recovery:s0
 
-# Jalankan vndservicemanager dari tempat aslinya di ramdisk lu (/system/bin)
 service vndservicemanager /system/bin/vndservicemanager /dev/vndbinder
     class core
     user 1000
@@ -160,16 +167,16 @@ service gatekeeperd /system/bin/gatekeeperd /data/misc/gatekeeper
     disabled
     seclabel u:r:recovery:s0
 
-# 🔑 LAYANAN WARISAN: Keystore Tradisional Android 10
+# 🔑 LAYANAN WARISAN: Keystore Tradisional Android 10 & 11 (FIXED GROUP GID)
 service keystore /system/bin/keystore /data/misc/keystore
     class main
     user keystore
-    group keystore system stream
+    group keystore system
     writepid /dev/cpuset/foreground/tasks
     disabled
     seclabel u:r:recovery:s0
 
-# 🔑 LAYANAN MODEREN: Keystore2 Rust Android 12 - 14
+# 🔑 LAYANAN MODEREN: Keystore2 Rust Android 12 ke atas
 service keystore2 /system/bin/keystore2 /data/misc/keystore
     class main
     user 1000
