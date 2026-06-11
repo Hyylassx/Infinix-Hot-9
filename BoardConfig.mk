@@ -133,3 +133,4 @@ TW_DEFAULT_LANGUAGE := en
 TW_THEME := portrait_hdpi
 TW_EXCLUDE_TWRPAPP := true
 TW_CRYPTO_SYSTEM_VOLD := false
+TW_CUSTOM_SETTINGS_PATH := /cache/recovery/fox
