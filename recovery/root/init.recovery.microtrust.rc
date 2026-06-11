@@ -73,10 +73,9 @@ on boot
     chown system system /sys/bus/platform/devices/utos/unload_ut_drv
     chown system system /sys/bus/platform/devices/utos/notify_ree_dci_handler
 
-    mkdir /data 0771 system system
-    mkdir /data/vendor 0771 system system
-    mkdir /data/vendor/thh 0755 system system
-    mkdir /data/vendor/thh/tee_00 0755 system system
+    # Safe TEE environment creation (Bypass direct /data restriction)
+    mkdir /metadata/vold 0700 root root
+    mkdir /metadata/vold/metadata_encryption 0700 root root
 
 # Crypto Stack Startup Chain
 on property:init.svc.hwservicemanager=running
@@ -88,6 +87,10 @@ on property:init.svc.teei_daemon=running
     start vendor.keymaster-4-0-beanpod
     start gatekeeper-1-0
     start keymaster-attestation
+
+# CRITICAL ANDROID 12 INTERLOCK: Trigger Keystore2 pas crypto ready
+on property:crypto.ready=1
+    start keystore2
 
 # Memicu CAPI tanpa mengganggu vold bawaan OrangeFox
 on property:init.svc.vendor.keymaster-4-0-beanpod=running
