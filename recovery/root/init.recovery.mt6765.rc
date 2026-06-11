@@ -108,9 +108,7 @@ on property:init.svc.wait_for_keymaster=stopped && property:ro.build.version.sdk
     start keystore2
     start gatekeeperd
 
-#+---------------------------------------------+#
 # RECOVERY OPTIMIZED CORE SERVICES DEFINITION #
-#+---------------------------------------------+#
 
 service servicemanager /system/bin/servicemanager
     class core
