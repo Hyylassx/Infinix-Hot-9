@@ -15,15 +15,17 @@ PRODUCT_TARGET_VNDK_VERSION := 29
 PRODUCT_PLATFORM := mt6765
 PRODUCT_USE_DYNAMIC_PARTITIONS := true
 
-# Crypto Packages
+# Crypto & Core Decryption Packages (Android 12 MediaTek)
 PRODUCT_PACKAGES += \
     servicemanager \
-    qcom_decrypt \
-    qcom_decrypt_fbe \
     hwservicemanager \
     vndservicemanager \
     vold \
-    vold_prepare_subdirs 
+    vold_prepare_subdirs \
+    keystore \
+    keystore2 \
+    gatekeeperd \
+    wait_for_keymaster
 
 # Force FBE Crypto Properties (Tells recovery it is FBE encrypted)
 PRODUCT_SYSTEM_DEFAULT_PROPERTIES += ro.crypto.state=encrypted
