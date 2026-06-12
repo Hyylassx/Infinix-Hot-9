@@ -31,7 +31,7 @@ on init
 on fs
     write /sys/class/udc/musb-hdrc/device/cmode 1
 
-    # Jalankan binder dasar serentak
+    # Run base binder concurrently
     start servicemanager
     start hwservicemanager
 
