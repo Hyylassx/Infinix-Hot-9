@@ -1,6 +1,14 @@
-#import /init.recovery.microtrust.rc
+import /init.recovery.microtrust.rc
+
+on early-init
+    # CRITICAL: Set SELinux to permissive to allow TEE/Keymaster to start
+    write /sys/fs/selinux/enforce 0
+    setprop selinux.reload_policy 0
 
 on init
+    # Save logcat to /cache so we don't lose vold/teei logs on reboot
+    exec_background /system/bin/sh -c "logcat -f /cache/recovery_logcat.log -v threadtime &"
+
     mkdir /tmp 0777 root root
     restorecon /tmp
 
@@ -37,6 +45,7 @@ on fs
     mkdir /metadata/vold 0700 root root
     restorecon /metadata/vold
     
+    # Start core services before TEE
     start servicemanager
     start hwservicemanager
 
@@ -56,6 +65,39 @@ on boot
     chmod 0666 /dev/input/event5
 
 on post-fs-data
+    # /data/misc is NOT created here anymore. 
+    # It will be created AFTER vold decrypts /data to prevent set_policy_failed panic.
+    start logd
+
+# ============================================
+# TEE / KEYMASTER / VOLD TRIGGER CHAIN
+# ============================================
+
+# Start TEE only after hwservicemanager is ready!
+on property:hwservicemanager.ready=true
+    start teei_daemon
+
+on property:init.svc.teei_daemon=running
+    start beanpod_check_keybox_service
+    start vendor.keymaster-4-0-beanpod
+    start teei_capi_2_0
+    start vendor.gatekeeper-1-0
+    start keymaster_attestation-1-1
+
+on property:init.svc.vendor.keymaster-4-0-beanpod=running
+    setprop vold.post_fs_data_done 1
+    start vold
+
+on property:init.svc.vold=running
+    start wait_for_keymaster
+
+on property:init.svc.wait_for_keymaster=stopped
+    start keystore
+    start gatekeeperd
+
+# VOLD DECRYPT STATE HANDLERS
+on property:vold.decrypt=trigger_restart_framework
+    # Data is now decrypted, safe to create /data dirs
     mkdir /data/misc 01771 system misc
     mkdir /data/misc/keystore 0700 keystore keystore
     mkdir /data/misc/vold 0700 root root
@@ -69,36 +111,23 @@ on post-fs-data
     mkdir /data/media 0770 media_rw media_rw
     mkdir /data/local/tmp 0771 shell shell
     mkdir /data/data 0771 system system
-
-    start logd
-
-# ============================================
-# TEE / KEYMASTER / VOLD TRIGGER CHAIN
-# ============================================
-
-on property:init.svc.teei_daemon=running
-    start beanpod_check_keybox_service
-    start vendor.keymaster-4-0-beanpod
-    start teei_capi_2_0
-    start vendor.gatekeeper-1-0
-    start keymaster_attestation-1-1
-
-on property:hwservicemanager.ready=true
-    setprop vold.post_fs_data_done 1
-    start vold
-
-on property:init.svc.vold=running
-    start wait_for_keymaster
-
-on property:init.svc.wait_for_keymaster=stopped
-    start keystore
-    start gatekeeperd
-
-# VOLD DECRYPT STATE HANDLERS
-on property:vold.decrypt=trigger_restart_framework
     trigger post-fs-data-tee
 
 on property:vold.decrypt=trigger_restart_min_framework
+    # Data is now decrypted, safe to create /data dirs
+    mkdir /data/misc 01771 system misc
+    mkdir /data/misc/keystore 0700 keystore keystore
+    mkdir /data/misc/vold 0700 root root
+    mkdir /data/misc/gatekeeper 0700 system system
+    mkdir /data/misc/systemkeys 0700 system system
+    mkdir /data/system 0775 system system
+    mkdir /data/system_ce 0770 system system
+    mkdir /data/misc_ce 01771 system misc
+    mkdir /data/vendor 0771 root root
+    mkdir /data/vendor_ce 0771 root root
+    mkdir /data/media 0770 media_rw media_rw
+    mkdir /data/local/tmp 0771 shell shell
+    mkdir /data/data 0771 system system
     trigger post-fs-data-tee
 
 on property:vold.decrypt=trigger_reset_main
@@ -133,6 +162,8 @@ on post-fs-data-tee
     mkdir /data/vendor/key_provisioning 0771 system system
     chmod 0755 /data/vendor/thh
     chown system system /data/vendor/thh
+    chmod 0755 /data/vendor/thh/system
+    chown system system /data/vendor/thh/system
     chmod 0755 /data/vendor/thh/tee_00
     chown system system /data/vendor/thh/tee_00
     chmod 0755 /data/vendor/thh/tee_01
@@ -171,11 +202,16 @@ on post-fs-data-tee
     chown system system /data/vendor/thh/tee_0F
     chmod 0755 /data/vendor/thh/ta
     chown system system /data/vendor/thh/ta
-    chmod 0755 /data/vendor/thh/system
-    chown system system /data/vendor/thh/system
-    restorecon_recursive /data/vendor/thh
     chmod 0771 /data/vendor/key_provisioning
     chown system system /data/vendor/key_provisioning
+    restorecon_recursive /data/vendor/thh
+
+# ============================================
+# PREVENT BOOTLOOP
+# ============================================
+on property:sys.powerctl=reboot
+    exec_background /system/bin/sh -c "echo 'REBOOT BLOCKED - Decryption failed but kept alive for debugging' >> /cache/recovery_debug.log; dmesg >> /cache/recovery_dmesg_blocked.log; getprop >> /cache/recovery_props_blocked.log"
+    setprop sys.powerctl ""
 
 # CORE SERVICES
 
