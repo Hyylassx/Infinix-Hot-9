@@ -45,19 +45,6 @@ PRODUCT_COPY_FILES += \
     $(DEVICE_PATH)/recovery/root/system/lib64/libteeservice_client.trustonic.so:root/system/lib64/libteeservice_client.trustonic.so \
     $(DEVICE_PATH)/recovery/root/system/lib64/android.hardware.gatekeeper@1.0.so:root/system/lib64/android.hardware.gatekeeper@1.0.so
 
-# System Bin Copies Library
-PRODUCT_COPY_FILES += \
-    $(DEVICE_PATH)/recovery/root/system/bin/vold:root/system/bin/vold \
-    $(DEVICE_PATH)/recovery/root/system/bin/keystore:root/system/bin/keystore \
-    $(DEVICE_PATH)/recovery/root/system/bin/vndservice:root/system/bin/vndservice \
-    $(DEVICE_PATH)/recovery/root/system/bin/gatekeeperd:root/system/bin/gatekeeperd \
-    $(DEVICE_PATH)/recovery/root/system/bin/servicemanager:root/system/bin/servicemanager \
-    $(DEVICE_PATH)/recovery/root/system/bin/hwservicemanager:root/system/bin/hwservicemanager \
-    $(DEVICE_PATH)/recovery/root/system/bin/vndservicemanager:root/system/bin/vndservicemanager \
-    $(DEVICE_PATH)/recovery/root/system/bin/wait_for_keymaster:root/system/bin/wait_for_keymaster \
-    $(DEVICE_PATH)/recovery/root/system/bin/vold_prepare_subdirs:root/system/bin/vold_prepare_subdirs
-    
-
 # VENDOR TEEI DEAMONS & SERVICES (Gatekeeper / Keymaster)
 PRODUCT_COPY_FILES += \
     $(DEVICE_PATH)/recovery/root/vendor/bin/teei_daemon:recovery/root/vendor/bin/teei_daemon \
