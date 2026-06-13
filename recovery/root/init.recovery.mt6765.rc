@@ -74,10 +74,10 @@ on post-fs-data
     exec_background /system/bin/sh -c "echo 'CANARY: post-fs-data DONE' >> /cache/recovery_debug.log"
 
 # ============================================
-# FBE RECOVERY FLOW: Start vold EARLY, let it discover keymaster
+# FBE RECOVERY FLOW
 # ============================================
 
-# Start TEE services once fs is ready
+# Start TEE services once teei_daemon is ready
 on property:init.svc.teei_daemon=running
     exec_background /system/bin/sh -c "echo 'CANARY: teei_daemon running' >> /cache/recovery_debug.log"
     start beanpod_check_keybox_service
@@ -86,16 +86,16 @@ on property:init.svc.teei_daemon=running
     start vendor.gatekeeper-1-0
     start keymaster_attestation-1-1
 
-# Start vold AFTER hwservicemanager is ready but BEFORE keystore
-# Vold will poll for keymaster HAL dynamically
+# Start vold when hwservicemanager is ready
+# Vold will discover keymaster dynamically via hwservicemanager
 on property:hwservicemanager.ready=true
     exec_background /system/bin/sh -c "echo 'CANARY: hwservicemanager ready, starting vold' >> /cache/recovery_debug.log"
     setprop vold.post_fs_data_done 1
     start vold
 
-# Start keystore/gatekeeperd AFTER vold is running (for app/crypto compatibility)
+# Start keystore/gatekeeperd after vold (for recovery UI compatibility)
 on property:init.svc.vold=running
-    exec_background /system/bin/sh -c "echo 'CANARY: vold running, starting keystore' >> /cache/recovery_debug.log"
+    exec_background /system/bin/sh -c "echo 'CANARY: vold running' >> /cache/recovery_debug.log"
     start wait_for_keymaster
 
 on property:init.svc.wait_for_keymaster=stopped
@@ -103,7 +103,7 @@ on property:init.svc.wait_for_keymaster=stopped
     start keystore
     start gatekeeperd
 
-# VOLD STATE HANDLERS
+# VOLD DECRYPT STATE HANDLERS
 on property:vold.decrypt=trigger_restart_framework
     exec_background /system/bin/sh -c "echo 'CANARY: vold decrypt SUCCESS' >> /cache/recovery_debug.log"
 
@@ -183,7 +183,7 @@ service wait_for_keymaster /system/bin/wait_for_keymaster
     oneshot
     seclabel u:r:recovery:s0
 
-# MICROTRUST / MEDIATEK HAL SERVICES
+# HAL SERVICES
 
 service vendor.keymaster-4-0-beanpod /vendor/bin/hw/android.hardware.keymaster@4.0-service.beanpod
     class hal
