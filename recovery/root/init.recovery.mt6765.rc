@@ -1,4 +1,4 @@
-import /init.recovery.microtrust.rc
+#import /init.recovery.microtrust.rc
 
 on init
     mkdir /tmp 0777 root root
@@ -22,20 +22,18 @@ on init
     setprop sys.usb.controller musb-hdrc
     setprop ro.boot.usbcontroller musb-hdrc
     
-    # CRITICAL: Prevent fastboot reboot if vold crashes!
     setprop sys.init_fatal_vold.reboot 0
     
     export LD_LIBRARY_PATH /system/lib64:/vendor/lib64:/system/lib:/vendor/lib:/sbin
 
-    # CANARY: Mark init stage
-    exec_background /system/bin/sh -c "echo 'CANARY: init stage complete' >> /cache/recovery_debug.log"
+    exec_background /system/bin/sh -c "echo 'CANARY: init' >> /cache/recovery_debug.log"
 
 on fs
     write /sys/class/udc/musb-hdrc/device/cmode 1
     start servicemanager
     start hwservicemanager
     
-    exec_background /system/bin/sh -c "echo 'CANARY: fs stage complete' >> /cache/recovery_debug.log"
+    exec_background /system/bin/sh -c "echo 'CANARY: fs' >> /cache/recovery_debug.log"
 
 on post-fs
     symlink /dev/block/sda /dev/block/mmcblk0boot0
@@ -44,7 +42,7 @@ on post-fs
     symlink /dev/block/mmcblk0boot1 /dev/block/platform/bootdevice/by-name/preloader_b
     chmod 0755 /sbin/foxstart.sh
     
-    exec_background /system/bin/sh -c "echo 'CANARY: post-fs stage complete' >> /cache/recovery_debug.log"
+    exec_background /system/bin/sh -c "echo 'CANARY: post-fs' >> /cache/recovery_debug.log"
 
 on boot
     chmod 0666 /dev/input/event0
@@ -53,14 +51,10 @@ on boot
     chmod 0666 /dev/input/event3
     chmod 0666 /dev/input/event4
     chmod 0666 /dev/input/event5
-    
-    exec_background /system/bin/sh -c "echo 'CANARY: boot stage complete' >> /cache/recovery_debug.log"
 
 on post-fs-data
-    # CANARY
     exec_background /system/bin/sh -c "echo 'CANARY: post-fs-data START' >> /cache/recovery_debug.log"
-
-    # Create essential directories BEFORE starting logd
+    
     mkdir /data/misc 01771 system misc
     mkdir /data/misc/keystore 0700 keystore keystore
     mkdir /data/misc/vold 0700 root root
@@ -75,26 +69,20 @@ on post-fs-data
     mkdir /data/local/tmp 0771 shell shell
     mkdir /data/data 0771 system system
 
-    # NOW start logd after dirs exist
     start logd
     
-    # DON'T set vold.post_fs_data_done here — let the trigger chain handle it
-    # setprop vold.post_fs_data_done 1
-    
-    exec_background /system/bin/sh -c "echo 'CANARY: post-fs-data dirs created, logd started' >> /cache/recovery_debug.log"
+    exec_background /system/bin/sh -c "echo 'CANARY: post-fs-data DONE' >> /cache/recovery_debug.log"
 
 # DYNAMIC TRIGGER CHAIN - FIXED ORDER #
 
-# Start Keybox Provisioning and HALs once TEE Daemon is running
 on property:init.svc.teei_daemon=running
-    exec_background /system/bin/sh -c "echo 'CANARY: teei_daemon running, starting keymaster chain' >> /cache/recovery_debug.log"
+    exec_background /system/bin/sh -c "echo 'CANARY: teei_daemon running' >> /cache/recovery_debug.log"
     start beanpod_check_keybox_service
     start vendor.keymaster-4-0-beanpod
     start teei_capi_2_0
     start vendor.gatekeeper-1-0
 
-# SCENARIO A: ANDROID 10 Path (XOS Stock ROM - SDK 29)
-# ADDED: wait_for_keymaster for MicroTrust compatibility
+# SCENARIO A: ANDROID 10 Path (SDK 29)
 on property:init.svc.vendor.keymaster-4-0-beanpod=running && property:ro.build.version.sdk=29
     exec_background /system/bin/sh -c "echo 'CANARY: SDK29 keymaster running' >> /cache/recovery_debug.log"
     start wait_for_keymaster
@@ -104,10 +92,8 @@ on property:init.svc.wait_for_keymaster=stopped && property:ro.build.version.sdk
     start keystore
     start gatekeeperd
 
-# Start vold ONLY after keystore is running for SDK 29
 on property:init.svc.keystore=running && property:ro.build.version.sdk=29
     exec_background /system/bin/sh -c "echo 'CANARY: SDK29 keystore running, starting vold' >> /cache/recovery_debug.log"
-    # Set this BEFORE starting vold
     setprop vold.post_fs_data_done 1
     start vold
 
@@ -123,7 +109,8 @@ on property:init.svc.wait_for_keymaster=stopped && property:ro.build.version.sdk
     setprop vold.post_fs_data_done 1
     start vold
 
-# SCENARIO C: ANDROID 12 To 14 Path (Custom ROM - SDK 31 And Above)
+# SCENARIO C: ANDROID 12+ Path (SDK 31+)
+# NOTE: If keystore2 is missing, use keystore as fallback
 on property:init.svc.vendor.keymaster-4-0-beanpod=running && property:ro.build.version.sdk=31
     exec_background /system/bin/sh -c "echo 'CANARY: SDK31 keymaster running' >> /cache/recovery_debug.log"
     start vndservicemanager
@@ -173,25 +160,16 @@ on property:init.svc.wait_for_keymaster=stopped && property:ro.build.version.sdk
     start vold
 
 # VOLD STATE HANDLERS
-
 on property:init.svc.vold=running
-    exec_background /system/bin/sh -c "echo 'CANARY: vold is running' >> /cache/recovery_debug.log"
+    exec_background /system/bin/sh -c "echo 'CANARY: vold running' >> /cache/recovery_debug.log"
 
 on property:vold.decrypt=trigger_restart_framework
-    exec_background /system/bin/sh -c "echo 'CANARY: vold decrypt SUCCESS (trigger_restart_framework)' >> /cache/recovery_debug.log"
-
-on property:vold.decrypt=trigger_restart_min_framework
-    exec_background /system/bin/sh -c "echo 'CANARY: vold decrypt min_framework' >> /cache/recovery_debug.log"
+    exec_background /system/bin/sh -c "echo 'CANARY: vold decrypt SUCCESS' >> /cache/recovery_debug.log"
 
 on property:vold.decrypt=trigger_reset_main
-    exec_background /system/bin/sh -c "echo 'CANARY: vold decrypt FAILED (trigger_reset_main)' >> /cache/recovery_debug.log; dmesg >> /cache/vold_fail_dmesg.log; getprop >> /cache/vold_fail_props.log"
-    # Don't reboot — stop vold and let recovery handle it
+    exec_background /system/bin/sh -c "echo 'CANARY: vold decrypt FAILED' >> /cache/recovery_debug.log; dmesg >> /cache/vold_fail_dmesg.log; getprop >> /cache/vold_fail_props.log"
     stop vold
 
-on property:vold.decrypt=trigger_shutdown_framework
-    exec_background /system/bin/sh -c "echo 'CANARY: vold decrypt shutdown_framework' >> /cache/recovery_debug.log"
-
-# Fallback for fake encryption mode
 on property:vendor.crypto.fake_encrypt=1 && property:vold.post_fs_data_done=1
     exec_background /system/bin/sh -c "echo 'CANARY: fake_encrypt fallback' >> /cache/recovery_debug.log"
     setprop vendor.soter.teei.crypto.state unencrypted
@@ -252,7 +230,6 @@ service gatekeeperd /system/bin/gatekeeperd /data/misc/gatekeeper
     disabled
     seclabel u:r:recovery:s0
 
-# CRITICAL FIX: Keystore MUST have drmrpc group to talk to Keymaster TEE
 service keystore /system/bin/keystore /data/misc/keystore
     class main
     user keystore
@@ -269,7 +246,6 @@ service keystore2 /system/bin/keystore2 /data/misc/keystore
     disabled
     seclabel u:r:recovery:s0
 
-# EXACT MATCH FROM STOCK ROM
 service wait_for_keymaster /system/bin/wait_for_keymaster
     class main
     user root
@@ -278,4 +254,26 @@ service wait_for_keymaster /system/bin/wait_for_keymaster
     ioprio rt 0
     disabled
     oneshot
+    seclabel u:r:recovery:s0
+
+# MISSING SERVICES - ADD THESE
+service vendor.keymaster-4-0-beanpod /vendor/bin/hw/android.hardware.keymaster@4.0-service.beanpod
+    class hal
+    user system
+    group system drmrpc
+    disabled
+    seclabel u:r:recovery:s0
+
+service teei_capi_2_0 /vendor/bin/hw/vendor.microtrust.hardware.capi@2.0-service
+    class hal
+    user system
+    group system
+    disabled
+    seclabel u:r:recovery:s0
+
+service vendor.gatekeeper-1-0 /vendor/bin/hw/android.hardware.gatekeeper@1.0-service
+    class hal
+    user system
+    group system
+    disabled
     seclabel u:r:recovery:s0
