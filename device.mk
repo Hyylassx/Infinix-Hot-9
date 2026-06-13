@@ -24,7 +24,6 @@ PRODUCT_COPY_FILES += \
     $(DEVICE_PATH)/recovery/root/system/lib/android.hidl.memory.token@1.0.so:root/system/lib/android.hidl.memory.token@1.0.so \
     $(DEVICE_PATH)/recovery/root/system/lib/android.hardware.keymaster@3.0.so:root/system/lib/android.hardware.keymaster@3.0.so \
     $(DEVICE_PATH)/recovery/root/system/lib/android.hardware.keymaster@4.0.so:root/system/lib/android.hardware.keymaster@4.0.so \
-    $(DEVICE_PATH)/recovery/root/system/lib/libteeservice_client.trustonic.so:root/system/lib/libteeservice_client.trustonic.so \
     $(DEVICE_PATH)/recovery/root/system/lib/android.hardware.gatekeeper@1.0.so:root/system/lib/android.hardware.gatekeeper@1.0.so
 
 # RECOVERY SYSTEM LIBRARIES 64 Bit
@@ -42,7 +41,6 @@ PRODUCT_COPY_FILES += \
     $(DEVICE_PATH)/recovery/root/system/lib64/android.hidl.memory.token@1.0.so:root/system/lib64/android.hidl.memory.token@1.0.so \
     $(DEVICE_PATH)/recovery/root/system/lib64/android.hardware.keymaster@3.0.so:root/system/lib64/android.hardware.keymaster@3.0.so \
     $(DEVICE_PATH)/recovery/root/system/lib64/android.hardware.keymaster@4.0.so:root/system/lib64/android.hardware.keymaster@4.0.so \
-    $(DEVICE_PATH)/recovery/root/system/lib64/libteeservice_client.trustonic.so:root/system/lib64/libteeservice_client.trustonic.so \
     $(DEVICE_PATH)/recovery/root/system/lib64/android.hardware.gatekeeper@1.0.so:root/system/lib64/android.hardware.gatekeeper@1.0.so
 
 # VENDOR TEEI DEAMONS & SERVICES (Gatekeeper / Keymaster)
