@@ -1,6 +1,5 @@
 # RECOVERY OPTIMIZED MICROTRUST BEANPOD TEE CONFIGURATION
 # Based on stock microtrust.rc + microtrust.bp_kmsetkey_ca.rc
-# For Android 10 (SDK 29) with FBE
 
 service teei_daemon /vendor/bin/teei_daemon \
     -r 020b0000000000000000000000000000 \
@@ -138,7 +137,7 @@ on property:vold.decrypt=trigger_restart_framework
     chmod 0771 /data/vendor/key_provisioning
     chown system system /data/vendor/key_provisioning
 
-# Also handle min_framework trigger (some ROMs use this path)
+# Also handle min_framework trigger
 on property:vold.decrypt=trigger_restart_min_framework
     mkdir /data/vendor/thh 0755 system system
     mkdir /data/vendor/thh/system 0755 system system
@@ -164,6 +163,8 @@ on property:vold.decrypt=trigger_restart_min_framework
     mkdir /data/vendor/key_provisioning 0771 system system
     chmod 0755 /data/vendor/thh
     chown system system /data/vendor/thh
+    chmod 0755 /data/vendor/thh/system
+    chown system system /data/vendor/thh/system
     chmod 0755 /data/vendor/thh/tee_00
     chown system system /data/vendor/thh/tee_00
     chmod 0755 /data/vendor/thh/tee_01
@@ -202,9 +203,6 @@ on property:vold.decrypt=trigger_restart_min_framework
     chown system system /data/vendor/thh/tee_0F
     chmod 0755 /data/vendor/thh/ta
     chown system system /data/vendor/thh/ta
-    chmod 0755 /data/vendor/thh/system
-    chown system system /data/vendor/thh/system
-    restorecon_recursive /data/vendor/thh
     chmod 0771 /data/vendor/key_provisioning
     chown system system /data/vendor/key_provisioning
 
