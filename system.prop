@@ -35,12 +35,9 @@ ro.crypto.metadata_init_enabled=true
 ro.sf.lcd_density=320
 ro.orangefox.disable_conv_layout=1
 ro.control_privapp_permissions=disable
-
-# OrangeFox Screen Layout Fixes (Infinix Hot 9 Play Notch/Corner Adaptation)
 dev.default_navbar_layout=0
-ro.orangefox.status_bar_high=100
-ro.orangefox.corner_radius=40
-
+ro.orangefox.status_bar_high=80
+ro.orangefox.corner_radius=50
 
 # Fastbootd Configuration & Control
 ro.fastbootd.available=true
