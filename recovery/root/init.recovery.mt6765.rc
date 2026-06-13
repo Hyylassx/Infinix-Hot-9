@@ -228,7 +228,6 @@ service hwservicemanager /system/bin/hwservicemanager
     user system
     group system readproc
     critical
-    onrestart setprop hwservicemanager.ready false
     writepid /dev/cpuset/system-background/tasks
     shutdown critical
     disabled
