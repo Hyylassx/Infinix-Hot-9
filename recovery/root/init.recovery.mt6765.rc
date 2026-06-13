@@ -1,11 +1,9 @@
-import /init.recovery.microtrust.rc
+#import /init.recovery.microtrust.rc
 
 on init
-    # Core & Temp Directory Creation
     mkdir /tmp 0777 root root
     restorecon /tmp
 
-    # CRITICAL FIX UNIFIED: Pure Cgroups & Cpuset structure
     mkdir /dev/cpuset 0750 root system
     mount cgroup none /dev/cpuset cpuset
     mkdir /dev/cpuset/foreground 0750 root system
@@ -19,32 +17,28 @@ on init
     mkdir /dev/cg2_bpf 0750 root system
     mount cgroup2 none /dev/cg2_bpf nodev noexec nosuid
 
-    # USB Configurationfs
     setprop sys.usb.configfs 1
     setprop sys.usb.ffs.aio_compat 1
     setprop sys.usb.controller musb-hdrc
     setprop ro.boot.usbcontroller musb-hdrc
     
-    # Export Dynamic Library Path (Must Include /sbin)
+    # CRITICAL: Prevent fastboot reboot if vold crashes!
+    setprop sys.init_fatal_vold.reboot 0
+    
     export LD_LIBRARY_PATH /system/lib64:/vendor/lib64:/system/lib:/vendor/lib:/sbin
 
 on fs
     write /sys/class/udc/musb-hdrc/device/cmode 1
-
-    # Run base binder concurrently
     start servicemanager
     start hwservicemanager
 
 on post-fs
-    # Preloader Symbolic Link (Typical MediaTek MT6765 Chipset)
     symlink /dev/block/sda /dev/block/mmcblk0boot0
     symlink /dev/block/sdb /dev/block/mmcblk0boot1
     symlink /dev/block/mmcblk0boot0 /dev/block/platform/bootdevice/by-name/preloader_a
     symlink /dev/block/mmcblk0boot1 /dev/block/platform/bootdevice/by-name/preloader_b
-    chmod 0755 /sbin/foxstart.sh
 
 on boot
-    # Touch Input Permissions (Touchscreen Driver)
     chmod 0666 /dev/input/event0
     chmod 0666 /dev/input/event1
     chmod 0666 /dev/input/event2
@@ -55,16 +49,42 @@ on boot
 on post-fs-data
     start logd
 
-# DYNAMIC TRIGGER CHAIN #
+    # CRITICAL FBE FIX: Create essential directories for vold & keystore
+    # Extracted from stock vendor_init_as_system.rc
+    mkdir /data/misc 01771 system misc
+    mkdir /data/misc/keystore 0700 keystore keystore
+    mkdir /data/misc/vold 0700 root root
+    mkdir /data/misc/gatekeeper 0700 system system
+    mkdir /data/misc/systemkeys 0700 system system
+    mkdir /data/system 0775 system system
+    mkdir /data/system_ce 0770 system system
+    mkdir /data/misc_ce 01771 system misc
+    mkdir /data/vendor 0771 root root
+    mkdir /data/vendor_ce 0771 root root
+    mkdir /data/media 0770 media_rw media_rw
+    mkdir /data/local/tmp 0771 shell shell
+    mkdir /data/data 0771 system system
 
-# Run the vold once TEE Microtrust is active
+    # CRITICAL FBE FIX: vold will NOT attempt decryption until this is set to 1
+    setprop vold.post_fs_data_done 1
+
+# DYNAMIC TRIGGER CHAIN - FIXED ORDER #
+
+# Start Keybox Provisioning and HALs once TEE Daemon is running
 on property:init.svc.teei_daemon=running
-    start vold
+    start beanpod_check_keybox_service
+    start vendor.keymaster-4-0-beanpod
+    start teei_capi_2_0
+    start vendor.gatekeeper-1-0
 
 # SCENARIO A: ANDROID 10 Path (XOS Stock ROM - SDK 29)
 on property:init.svc.vendor.keymaster-4-0-beanpod=running && property:ro.build.version.sdk=29
     start keystore
     start gatekeeperd
+
+# Start vold ONLY after keystore is running for SDK 29
+on property:init.svc.keystore=running && property:ro.build.version.sdk=29
+    start vold
 
 # SCENARIO B: ANDROID 11 Path (SDK 30)
 on property:init.svc.vendor.keymaster-4-0-beanpod=running && property:ro.build.version.sdk=30
@@ -73,6 +93,7 @@ on property:init.svc.vendor.keymaster-4-0-beanpod=running && property:ro.build.v
 on property:init.svc.wait_for_keymaster=stopped && property:ro.build.version.sdk=30
     start keystore
     start gatekeeperd
+    start vold
 
 # SCENARIO C: ANDROID 12 To 14 Path (Custom ROM - SDK 31 And Above)
 on property:init.svc.vendor.keymaster-4-0-beanpod=running && property:ro.build.version.sdk=31
@@ -91,24 +112,27 @@ on property:init.svc.vendor.keymaster-4-0-beanpod=running && property:ro.build.v
     start vndservicemanager
     start wait_for_keymaster
 
-# Execute Keystore2 after the keymaster security guard is finished (Only A12 and above)
 on property:init.svc.wait_for_keymaster=stopped && property:ro.build.version.sdk=31
     start keystore2
     start gatekeeperd
+    start vold
 
 on property:init.svc.wait_for_keymaster=stopped && property:ro.build.version.sdk=32
     start keystore2
     start gatekeeperd
+    start vold
 
 on property:init.svc.wait_for_keymaster=stopped && property:ro.build.version.sdk=33
     start keystore2
     start gatekeeperd
+    start vold
 
 on property:init.svc.wait_for_keymaster=stopped && property:ro.build.version.sdk=34
     start keystore2
     start gatekeeperd
+    start vold
 
-# RECOVERY OPTIMIZED CORE SERVICES DEFINITION #
+# CORE SERVICES #
 
 service servicemanager /system/bin/servicemanager
     class core
@@ -118,9 +142,9 @@ service servicemanager /system/bin/servicemanager
     seclabel u:r:recovery:s0
 
 service hwservicemanager /system/bin/hwservicemanager
-    class siginallog
-    user 1000
-    group 1000 readproc
+    class core
+    user system
+    group system readproc
     critical
     onrestart setprop hwservicemanager.ready false
     writepid /dev/cpuset/system-background/tasks
@@ -130,8 +154,8 @@ service hwservicemanager /system/bin/hwservicemanager
 
 service vndservicemanager /system/bin/vndservicemanager /dev/vndbinder
     class core
-    user 1000
-    group 1000 readproc
+    user system
+    group system readproc
     writepid /dev/cpuset/system-background/tasks
     shutdown critical
     disabled
@@ -158,35 +182,34 @@ service vold /system/bin/vold \
     seclabel u:r:vold:s0
 
 service gatekeeperd /system/bin/gatekeeperd /data/misc/gatekeeper
-    class main
-    user 1000
-    group 1000 drmrpc
-    writepid /dev/cpuset/foreground/tasks
+    class late_start
+    user system
+    writepid /dev/cpuset/system-background/tasks
     disabled
     seclabel u:r:recovery:s0
 
-# 🔑 SERVICES: Android 10 & 11 Traditional Keystore (FIXED GROUP GID)
+# CRITICAL FIX: Keystore MUST have drmrpc group to talk to Keymaster TEE
 service keystore /system/bin/keystore /data/misc/keystore
     class main
     user keystore
-    group keystore system
+    group keystore drmrpc readproc log
     writepid /dev/cpuset/foreground/tasks
     disabled
     seclabel u:r:recovery:s0
 
-# 🔑 MODEREN SERVICE: Keystore2 Rust Android 12 and above
 service keystore2 /system/bin/keystore2 /data/misc/keystore
     class main
-    user 1000
-    group 1000 drmrpc readproc log
+    user keystore
+    group keystore drmrpc readproc log
     writepid /dev/cpuset/foreground/tasks
     disabled
     seclabel u:r:recovery:s0
 
+# EXACT MATCH FROM STOCK ROM
 service wait_for_keymaster /system/bin/wait_for_keymaster
     class main
-    user 1000
-    group 1000 system
+    user root
+    group root system
     priority -20
     ioprio rt 0
     disabled
