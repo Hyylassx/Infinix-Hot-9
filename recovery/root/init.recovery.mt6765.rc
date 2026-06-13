@@ -37,6 +37,7 @@ on post-fs
     symlink /dev/block/sdb /dev/block/mmcblk0boot1
     symlink /dev/block/mmcblk0boot0 /dev/block/platform/bootdevice/by-name/preloader_a
     symlink /dev/block/mmcblk0boot1 /dev/block/platform/bootdevice/by-name/preloader_b
+    chmod 0755 /sbin/foxstart.sh
 
 on boot
     chmod 0666 /dev/input/event0
