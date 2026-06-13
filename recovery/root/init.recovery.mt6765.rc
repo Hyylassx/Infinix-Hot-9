@@ -1,4 +1,4 @@
-import /init.recovery.microtrust.rc
+#import /init.recovery.microtrust.rc
 
 on init
     mkdir /tmp 0777 root root
@@ -63,15 +63,118 @@ on post-fs-data
 
     start logd
 
-# Let OrangeFox/TWRP handle vold startup and crypto
-# Just ensure TEE services are available when TWRP asks for them
+# ============================================
+# TEE / KEYMASTER / VOLD TRIGGER CHAIN
+# ============================================
 
+# Start all TEE-related services when teei_daemon is ready
 on property:init.svc.teei_daemon=running
     start beanpod_check_keybox_service
     start vendor.keymaster-4-0-beanpod
     start teei_capi_2_0
     start vendor.gatekeeper-1-0
     start keymaster_attestation-1-1
+
+# Start vold when hwservicemanager is ready
+# Vold will discover keymaster HAL and handle FBE itself
+on property:hwservicemanager.ready=true
+    setprop vold.post_fs_data_done 1
+    start vold
+
+# Start keystore/gatekeeperd after vold for UI compatibility
+on property:init.svc.vold=running
+    start wait_for_keymaster
+
+on property:init.svc.wait_for_keymaster=stopped
+    start keystore
+    start gatekeeperd
+
+# VOLD DECRYPT STATE HANDLERS
+on property:vold.decrypt=trigger_restart_framework
+    # Decryption succeeded - create TEE dirs now that /data is accessible
+    trigger post-fs-data-tee
+
+on property:vold.decrypt=trigger_restart_min_framework
+    # Partial decryption - also create TEE dirs
+    trigger post-fs-data-tee
+
+on property:vold.decrypt=trigger_reset_main
+    # Decryption failed - log and stop
+    exec_background /system/bin/sh -c "dmesg >> /cache/vold_fail_dmesg.log; getprop >> /cache/vold_fail_props.log"
+    stop vold
+
+on property:vendor.crypto.fake_encrypt=1 && property:vold.post_fs_data_done=1
+    setprop vendor.soter.teei.crypto.state unencrypted
+
+# Create TEE-specific /data directories AFTER successful decryption
+on post-fs-data-tee
+    mkdir /data/vendor/thh 0755 system system
+    mkdir /data/vendor/thh/system 0755 system system
+    mkdir /data/vendor/thh/tee_00 0755 system system
+    mkdir /data/vendor/thh/tee_01 0755 system system
+    mkdir /data/vendor/thh/tee_02 0755 system system
+    mkdir /data/vendor/thh/tee_03 0755 system system
+    mkdir /data/vendor/thh/tee_04 0755 system system
+    mkdir /data/vendor/thh/tee_05 0755 system system
+    mkdir /data/vendor/thh/tee_06 0755 system system
+    mkdir /data/vendor/thh/tee_07 0755 system system
+    mkdir /data/vendor/thh/tee 0755 system system
+    mkdir /data/vendor/thh/tee/tas 0755 system system
+    mkdir /data/vendor/thh/tee_08 0755 system system
+    mkdir /data/vendor/thh/tee_09 0755 system system
+    mkdir /data/vendor/thh/tee_0A 0755 system system
+    mkdir /data/vendor/thh/tee_0B 0755 system system
+    mkdir /data/vendor/thh/tee_0C 0755 system system
+    mkdir /data/vendor/thh/tee_0D 0755 system system
+    mkdir /data/vendor/thh/tee_0E 0755 system system
+    mkdir /data/vendor/thh/tee_0F 0755 system system
+    mkdir /data/vendor/thh/ta 0755 system system
+    mkdir /data/vendor/key_provisioning 0771 system system
+    chmod 0755 /data/vendor/thh
+    chown system system /data/vendor/thh
+    chmod 0755 /data/vendor/thh/tee_00
+    chown system system /data/vendor/thh/tee_00
+    chmod 0755 /data/vendor/thh/tee_01
+    chown system system /data/vendor/thh/tee_01
+    chmod 0755 /data/vendor/thh/tee_02
+    chown system system /data/vendor/thh/tee_02
+    chmod 0755 /data/vendor/thh/tee_03
+    chown system system /data/vendor/thh/tee_03
+    chmod 0755 /data/vendor/thh/tee_04
+    chown system system /data/vendor/thh/tee_04
+    chmod 0755 /data/vendor/thh/tee_05
+    chown system system /data/vendor/thh/tee_05
+    chmod 0755 /data/vendor/thh/tee_06
+    chown system system /data/vendor/thh/tee_06
+    chmod 0755 /data/vendor/thh/tee_07
+    chown system system /data/vendor/thh/tee_07
+    chmod 0755 /data/vendor/thh/tee
+    chown system system /data/vendor/thh/tee
+    chmod 0755 /data/vendor/thh/tee/tas
+    chown system system /data/vendor/thh/tee/tas
+    chmod 0755 /data/vendor/thh/tee_08
+    chown system system /data/vendor/thh/tee_08
+    chmod 0755 /data/vendor/thh/tee_09
+    chown system system /data/vendor/thh/tee_09
+    chmod 0755 /data/vendor/thh/tee_0A
+    chown system system /data/vendor/thh/tee_0A
+    chmod 0755 /data/vendor/thh/tee_0B
+    chown system system /data/vendor/thh/tee_0B
+    chmod 0755 /data/vendor/thh/tee_0C
+    chown system system /data/vendor/thh/tee_0C
+    chmod 0755 /data/vendor/thh/tee_0D
+    chown system system /data/vendor/thh/tee_0D
+    chmod 0755 /data/vendor/thh/tee_0E
+    chown system system /data/vendor/thh/tee_0E
+    chmod 0755 /data/vendor/thh/tee_0F
+    chown system system /data/vendor/thh/tee_0F
+    chmod 0755 /data/vendor/thh/ta
+    chown system system /data/vendor/thh/ta
+    chmod 0755 /data/vendor/thh/system
+    chown system system /data/vendor/thh/system
+    restorecon_recursive /data/vendor/thh
+    chmod 0771 /data/vendor/key_provisioning
+    chown system system /data/vendor/key_provisioning
 
 # CORE SERVICES
 
@@ -101,6 +204,17 @@ service logd /system/bin/logd
     priority 10
     writepid /dev/cpuset/system-background/tasks
     seclabel u:r:logd:s0
+
+service vold /system/bin/vold \
+        --blkid_context=u:r:blkid:s0 --blkid_untrusted_context=u:r:blkid_untrusted:s0 \
+        --fsck_context=u:r:fsck:s0 --fsck_untrusted_context=u:r:fsck_untrusted:s0
+    class core
+    ioprio be 2
+    writepid /dev/cpuset/foreground/tasks
+    shutdown critical
+    group root reserved_disk
+    disabled
+    seclabel u:r:vold:s0
 
 service gatekeeperd /system/bin/gatekeeperd /data/misc/gatekeeper
     class late_start
