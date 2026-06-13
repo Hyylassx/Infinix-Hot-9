@@ -58,161 +58,18 @@ on fs
     chmod 0666 /dev/tee_log
     chown root root /dev/tee_log
    
-    # ... existing device node setup ...
-    # Ensure /metadata/vold exists for vold (before vold starts)
-    exec_background /system/bin/sh -c "if [ -d /metadata ]; then mkdir -p /metadata/vold; chmod 0700 /metadata/vold; chown root root /metadata/vold; restorecon /metadata/vold; fi"
-    start teei_daemon
+    # REMOVED start teei_daemon from here. 
+    # It will be started in the main file AFTER hwservicemanager is ready.
 
 on post-fs
     # Setup RPMB secure storage paths if partitions are mounted
-    exec_background /system/bin/sh -c "if [ -d /mnt/vendor/persist ]; then chown system system /mnt/vendor/persist; chmod 0771 /mnt/vendor/persist; mkdir -p /mnt/vendor/persist/rpmb; chown system system /mnt/vendor/persist/rpmb; chmod 0771 /mnt/vendor/persist/rpmb; restorecon_recursive /mnt/vendor/persist/rpmb; fi"
-    exec_background /system/bin/sh -c "if [ -d /persist ]; then mkdir -p /persist/rpmb; chmod 0771 /persist/rpmb; chown system system /persist/rpmb; restorecon_recursive /persist; fi"
-    exec_background /system/bin/sh -c "if [ -d /vendor/persist ]; then mkdir -p /vendor/persist/rpmb; chmod 0771 /vendor/persist/rpmb; chown system system /vendor/persist/rpmb; restorecon_recursive /vendor/persist; fi"
-
-# Create thh dirs ONLY after vold successfully decrypts /data
-# This is critical - /data is encrypted until vold decrypts it
-on property:vold.decrypt=trigger_restart_framework
-    mkdir /data/vendor/thh 0755 system system
-    mkdir /data/vendor/thh/system 0755 system system
-    mkdir /data/vendor/thh/tee_00 0755 system system
-    mkdir /data/vendor/thh/tee_01 0755 system system
-    mkdir /data/vendor/thh/tee_02 0755 system system
-    mkdir /data/vendor/thh/tee_03 0755 system system
-    mkdir /data/vendor/thh/tee_04 0755 system system
-    mkdir /data/vendor/thh/tee_05 0755 system system
-    mkdir /data/vendor/thh/tee_06 0755 system system
-    mkdir /data/vendor/thh/tee_07 0755 system system
-    mkdir /data/vendor/thh/tee 0755 system system
-    mkdir /data/vendor/thh/tee/tas 0755 system system
-    mkdir /data/vendor/thh/tee_08 0755 system system
-    mkdir /data/vendor/thh/tee_09 0755 system system
-    mkdir /data/vendor/thh/tee_0A 0755 system system
-    mkdir /data/vendor/thh/tee_0B 0755 system system
-    mkdir /data/vendor/thh/tee_0C 0755 system system
-    mkdir /data/vendor/thh/tee_0D 0755 system system
-    mkdir /data/vendor/thh/tee_0E 0755 system system
-    mkdir /data/vendor/thh/tee_0F 0755 system system
-    mkdir /data/vendor/thh/ta 0755 system system
-    mkdir /data/vendor/key_provisioning 0771 system system
-    
-    # Full permissions from stock (were missing in original recovery)
-    chmod 0755 /data/vendor/thh
-    chown system system /data/vendor/thh
-    chmod 0755 /data/vendor/thh/tee_00
-    chown system system /data/vendor/thh/tee_00
-    chmod 0755 /data/vendor/thh/tee_01
-    chown system system /data/vendor/thh/tee_01
-    chmod 0755 /data/vendor/thh/tee_02
-    chown system system /data/vendor/thh/tee_02
-    chmod 0755 /data/vendor/thh/tee_03
-    chown system system /data/vendor/thh/tee_03
-    chmod 0755 /data/vendor/thh/tee_04
-    chown system system /data/vendor/thh/tee_04
-    chmod 0755 /data/vendor/thh/tee_05
-    chown system system /data/vendor/thh/tee_05
-    chmod 0755 /data/vendor/thh/tee_06
-    chown system system /data/vendor/thh/tee_06
-    chmod 0755 /data/vendor/thh/tee_07
-    chown system system /data/vendor/thh/tee_07
-    chmod 0755 /data/vendor/thh/tee
-    chown system system /data/vendor/thh/tee
-    chmod 0755 /data/vendor/thh/tee/tas
-    chown system system /data/vendor/thh/tee/tas
-    chmod 0755 /data/vendor/thh/tee_08
-    chown system system /data/vendor/thh/tee_08
-    chmod 0755 /data/vendor/thh/tee_09
-    chown system system /data/vendor/thh/tee_09
-    chmod 0755 /data/vendor/thh/tee_0A
-    chown system system /data/vendor/thh/tee_0A
-    chmod 0755 /data/vendor/thh/tee_0B
-    chown system system /data/vendor/thh/tee_0B
-    chmod 0755 /data/vendor/thh/tee_0C
-    chown system system /data/vendor/thh/tee_0C
-    chmod 0755 /data/vendor/thh/tee_0D
-    chown system system /data/vendor/thh/tee_0D
-    chmod 0755 /data/vendor/thh/tee_0E
-    chown system system /data/vendor/thh/tee_0E
-    chmod 0755 /data/vendor/thh/tee_0F
-    chown system system /data/vendor/thh/tee_0F
-    chmod 0755 /data/vendor/thh/ta
-    chown system system /data/vendor/thh/ta
-    chmod 0755 /data/vendor/thh/system
-    chown system system /data/vendor/thh/system
-    restorecon_recursive /data/vendor/thh
-    chmod 0771 /data/vendor/key_provisioning
-    chown system system /data/vendor/key_provisioning
-
-# Also handle min_framework trigger (some ROMs use this path)
-on property:vold.decrypt=trigger_restart_min_framework
-    # Same mkdirs and chmods as above
-    mkdir /data/vendor/thh 0755 system system
-    mkdir /data/vendor/thh/system 0755 system system
-    mkdir /data/vendor/thh/tee_00 0755 system system
-    mkdir /data/vendor/thh/tee_01 0755 system system
-    mkdir /data/vendor/thh/tee_02 0755 system system
-    mkdir /data/vendor/thh/tee_03 0755 system system
-    mkdir /data/vendor/thh/tee_04 0755 system system
-    mkdir /data/vendor/thh/tee_05 0755 system system
-    mkdir /data/vendor/thh/tee_06 0755 system system
-    mkdir /data/vendor/thh/tee_07 0755 system system
-    mkdir /data/vendor/thh/tee 0755 system system
-    mkdir /data/vendor/thh/tee/tas 0755 system system
-    mkdir /data/vendor/thh/tee_08 0755 system system
-    mkdir /data/vendor/thh/tee_09 0755 system system
-    mkdir /data/vendor/thh/tee_0A 0755 system system
-    mkdir /data/vendor/thh/tee_0B 0755 system system
-    mkdir /data/vendor/thh/tee_0C 0755 system system
-    mkdir /data/vendor/thh/tee_0D 0755 system system
-    mkdir /data/vendor/thh/tee_0E 0755 system system
-    mkdir /data/vendor/thh/tee_0F 0755 system system
-    mkdir /data/vendor/thh/ta 0755 system system
-    mkdir /data/vendor/key_provisioning 0771 system system
-    chmod 0755 /data/vendor/thh
-    chown system system /data/vendor/thh
-    chmod 0755 /data/vendor/thh/tee_00
-    chown system system /data/vendor/thh/tee_00
-    chmod 0755 /data/vendor/thh/tee_01
-    chown system system /data/vendor/thh/tee_01
-    chmod 0755 /data/vendor/thh/tee_02
-    chown system system /data/vendor/thh/tee_02
-    chmod 0755 /data/vendor/thh/tee_03
-    chown system system /data/vendor/thh/tee_03
-    chmod 0755 /data/vendor/thh/tee_04
-    chown system system /data/vendor/thh/tee_04
-    chmod 0755 /data/vendor/thh/tee_05
-    chown system system /data/vendor/thh/tee_05
-    chmod 0755 /data/vendor/thh/tee_06
-    chown system system /data/vendor/thh/tee_06
-    chmod 0755 /data/vendor/thh/tee_07
-    chown system system /data/vendor/thh/tee_07
-    chmod 0755 /data/vendor/thh/tee
-    chown system system /data/vendor/thh/tee
-    chmod 0755 /data/vendor/thh/tee/tas
-    chown system system /data/vendor/thh/tee/tas
-    chmod 0755 /data/vendor/thh/tee_08
-    chown system system /data/vendor/thh/tee_08
-    chmod 0755 /data/vendor/thh/tee_09
-    chown system system /data/vendor/thh/tee_09
-    chmod 0755 /data/vendor/thh/tee_0A
-    chown system system /data/vendor/thh/tee_0A
-    chmod 0755 /data/vendor/thh/tee_0B
-    chown system system /data/vendor/thh/tee_0B
-    chmod 0755 /data/vendor/thh/tee_0C
-    chown system system /data/vendor/thh/tee_0C
-    chmod 0755 /data/vendor/thh/tee_0D
-    chown system system /data/vendor/thh/tee_0D
-    chmod 0755 /data/vendor/thh/tee_0E
-    chown system system /data/vendor/thh/tee_0E
-    chmod 0755 /data/vendor/thh/tee_0F
-    chown system system /data/vendor/thh/tee_0F
-    chmod 0755 /data/vendor/thh/ta
-    chown system system /data/vendor/thh/ta
-    chmod 0755 /data/vendor/thh/system
-    chown system system /data/vendor/thh/system
-    restorecon_recursive /data/vendor/thh
-    chmod 0771 /data/vendor/key_provisioning
-    chown system system /data/vendor/key_provisioning
+    exec_background /system/bin/sh -c "if [ -d /mnt/vendor/persist ]; then chown system system /mnt/vendor/persist; chmod 0771 /mnt/vendor/persist; mkdir -p /mnt/vendor/persist/rpmb; chown system system /mnt/vendor/persist/rpmb; chmod 0771 /mnt/vendor/persist/rpmb; fi"
+    exec_background /system/bin/sh -c "if [ -d /persist ]; then mkdir -p /persist/rpmb; chmod 0771 /persist/rpmb; chown system system /persist/rpmb; fi"
+    exec_background /system/bin/sh -c "if [ -d /vendor/persist ]; then mkdir -p /vendor/persist/rpmb; chmod 0771 /vendor/persist/rpmb; chown system system /vendor/persist/rpmb; fi"
 
 # Fallback for factory/recovery mode without real encryption
 on property:vendor.crypto.fake_encrypt=1 && property:vold.post_fs_data_done=1
     setprop vendor.soter.teei.crypto.state unencrypted
+
+# REMOVED vold.decrypt triggers from here! 
+# They are now handled entirely by init.recovery.mt6765.rc to prevent duplicate execution.
