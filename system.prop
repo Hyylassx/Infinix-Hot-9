@@ -21,6 +21,14 @@ ro.boot.dynamic_partitions=true
 # Microtrust Beanpod TEE Security Props (Fix Decryption)
 ro.odm.tee=1
 ro.vendor.mtk_microtrust_tee_support=1
+ro.hardware.gatekeeper=beanpod
+ro.hardware.keystore_deserialize=true
+
+# Verified Boot State (Crucial for Keymaster 4.0)
+ro.boot.verifiedbootstate=orange
+ro.boot.flash.locked=0
+ro.boot.vbmeta.device_state=unlocked
+ro.boot.veritymode=disabled
 
 # File-Based Encryption (FBE) Configurations
 ro.crypto.volume.contents_mode=aes-256-xts
@@ -29,7 +37,8 @@ ro.crypto.fbe_crypto_fields_supported=true
 ro.crypto.set_unencrypted_property=true
 ro.crypto.state=encrypted
 ro.crypto.type=file
-ro.crypto.metadata_init_enabled=true
+ro.crypto.fbe_sdcard_internal=true
+# REMOVED: ro.crypto.metadata_init_enabled=true (Not for Android 10, breaks vold)
 
 # OrangeFox Advanced GUI & Display Target
 ro.sf.lcd_density=320
