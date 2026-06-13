@@ -139,3 +139,4 @@ TW_USE_FSCRYPT_POLICY := 1
 TW_NO_KEYSTORE2 := true
 TW_LOAD_VENDOR_BOOT_MODULES := true
 TW_CUSTOM_SETTINGS_PATH := /cache/recovery/fox
+TW_FORCE_KEY_DIRECTORY := "/data/unencrypted/key"
