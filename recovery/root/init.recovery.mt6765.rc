@@ -28,6 +28,15 @@ on init
 
 on fs
     write /sys/class/udc/musb-hdrc/device/cmode 1
+    
+    # Mount metadata with correct SELinux context
+    mount ext4 /dev/block/platform/bootdevice/by-name/md_udc /metadata noatime,nosuid,nodev,discard
+    restorecon_recursive /metadata
+    
+    # Ensure vold metadata dir exists
+    mkdir /metadata/vold 0700 root root
+    restorecon /metadata/vold
+    
     start servicemanager
     start hwservicemanager
 
@@ -67,7 +76,6 @@ on post-fs-data
 # TEE / KEYMASTER / VOLD TRIGGER CHAIN
 # ============================================
 
-# Start all TEE-related services when teei_daemon is ready
 on property:init.svc.teei_daemon=running
     start beanpod_check_keybox_service
     start vendor.keymaster-4-0-beanpod
@@ -75,13 +83,10 @@ on property:init.svc.teei_daemon=running
     start vendor.gatekeeper-1-0
     start keymaster_attestation-1-1
 
-# Start vold when hwservicemanager is ready
-# Vold will discover keymaster HAL and handle FBE itself
 on property:hwservicemanager.ready=true
     setprop vold.post_fs_data_done 1
     start vold
 
-# Start keystore/gatekeeperd after vold for UI compatibility
 on property:init.svc.vold=running
     start wait_for_keymaster
 
@@ -91,22 +96,18 @@ on property:init.svc.wait_for_keymaster=stopped
 
 # VOLD DECRYPT STATE HANDLERS
 on property:vold.decrypt=trigger_restart_framework
-    # Decryption succeeded - create TEE dirs now that /data is accessible
     trigger post-fs-data-tee
 
 on property:vold.decrypt=trigger_restart_min_framework
-    # Partial decryption - also create TEE dirs
     trigger post-fs-data-tee
 
 on property:vold.decrypt=trigger_reset_main
-    # Decryption failed - log and stop
     exec_background /system/bin/sh -c "dmesg >> /cache/vold_fail_dmesg.log; getprop >> /cache/vold_fail_props.log"
     stop vold
 
 on property:vendor.crypto.fake_encrypt=1 && property:vold.post_fs_data_done=1
     setprop vendor.soter.teei.crypto.state unencrypted
 
-# Create TEE-specific /data directories AFTER successful decryption
 on post-fs-data-tee
     mkdir /data/vendor/thh 0755 system system
     mkdir /data/vendor/thh/system 0755 system system
