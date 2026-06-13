@@ -1,75 +1,297 @@
-# RECOVERY OPTIMIZED MICROTRUST BEANPOD TEE CONFIGURATION
-# Based on stock microtrust.rc + microtrust.bp_kmsetkey_ca.rc
-# For Android 10 (SDK 29) with FBE
+import /init.recovery.microtrust.rc
 
-service teei_daemon /vendor/bin/teei_daemon \
-    -r 020b0000000000000000000000000000 \
-    -r 020f0000000000000000000000000000 \
-    -r 06090000000000000000000000000000 \
-    -r 05120000000000000000000000000000 \
-    -r 40188311faf343488db888ad39496f9a \
-    -r 07060000000000000000000000007169 \
-    -r 9073f03a9618383bb1856eb3f990babd \
-    -r 08050000000000000000000000003419 \
-    -r 5020170115e016302017012521300000 \
-    -r 0f5eed3c3b5a47afacca69a84bf0efad \
-    -r 07407000000000000000000000000000 \
-    -r 05160000000000000000000000000000 \
-    -r 91dba524a6e24909acc48abd7163121a \
-    -r 08030000000000000000000000000000 \
-    -r 85f630e0f0964c5fa2cc268ce04e3da3 \
-    -r 98fb95bcb4bf42d26473eae48690d7ea \
-    -r 7b66512021214487ba710a51d7ea78fe \
-    -r 09010000000000000000000000000000
+on early-init
+    # Set SELinux to permissive
+    write /sys/fs/selinux/enforce 0
+    setprop selinux.reload_policy 0
+
+on init
+    # Save logcat to /cache so we don't lose vold/teei logs on reboot
+    exec_background /system/bin/sh -c "logcat -f /cache/recovery_logcat.log -v threadtime &"
+
+    mkdir /tmp 0777 root root
+    restorecon /tmp
+
+    mkdir /dev/cpuset 0750 root system
+    mount cgroup none /dev/cpuset cpuset
+    mkdir /dev/cpuset/foreground 0750 root system
+    mkdir /dev/cpuset/background 0750 root system
+    mkdir /dev/cpuset/system-background 0750 root system
+    mkdir /dev/cpuset/top-app 0750 root system
+    write /dev/cpuset/foreground/tasks 1
+    write /dev/cpuset/background/tasks 1
+    write /dev/cpuset/system-background/tasks 1
+
+    mkdir /dev/cg2_bpf 0750 root system
+    mount cgroup2 none /dev/cg2_bpf nodev noexec nosuid
+
+    setprop sys.usb.configfs 1
+    setprop sys.usb.ffs.aio_compat 1
+    setprop sys.usb.controller musb-hdrc
+    setprop ro.boot.usbcontroller musb-hdrc
+    
+    setprop sys.init_fatal_vold.reboot 0
+    
+    export LD_LIBRARY_PATH /system/lib64:/vendor/lib64:/system/lib:/vendor/lib:/sbin
+
+on fs
+    write /sys/class/udc/musb-hdrc/device/cmode 1
+    
+    # Mount metadata with correct SELinux context
+    mount ext4 /dev/block/platform/bootdevice/by-name/md_udc /metadata noatime,nosuid,nodev,discard
+    restorecon_recursive /metadata
+    
+    # Ensure vold metadata dir exists
+    mkdir /metadata/vold 0700 root root
+    restorecon /metadata/vold
+    
+    # Start core services
+    start servicemanager
+    start hwservicemanager
+
+on post-fs
+    symlink /dev/block/sda /dev/block/mmcblk0boot0
+    symlink /dev/block/sdb /dev/block/mmcblk0boot1
+    symlink /dev/block/mmcblk0boot0 /dev/block/platform/bootdevice/by-name/preloader_a
+    symlink /dev/block/mmcblk0boot1 /dev/block/platform/bootdevice/by-name/preloader_b
+
+on late-fs
+    # CRITICAL: Wait for hwservicemanager just like stock MTK does!
+    wait_for_prop hwservicemanager.ready true
+    
+    # Now safe to start early HALs and TEE
+    class_start early_hal
+    start teei_daemon
+
+on boot
+    chmod 0666 /dev/input/event0
+    chmod 0666 /dev/input/event1
+    chmod 0666 /dev/input/event2
+    chmod 0666 /dev/input/event3
+    chmod 0666 /dev/input/event4
+    chmod 0666 /dev/input/event5
+
+on post-fs-data
+    # REMOVED /data/misc mkdirs from here! 
+    start logd
+    start vold
+
+# ============================================
+# TEE / KEYMASTER TRIGGER CHAIN
+# ============================================
+
+on property:init.svc.teei_daemon=running
+    start beanpod_check_keybox_service
+
+on property:init.svc.vold=running
+    start wait_for_keymaster
+
+on property:init.svc.wait_for_keymaster=stopped
+    start keystore
+    start gatekeeperd
+
+# VOLD DECRYPT STATE HANDLERS
+on property:vold.decrypt=trigger_restart_framework
+    mkdir /data/misc 01771 system misc
+    mkdir /data/misc/keystore 0700 keystore keystore
+    mkdir /data/misc/vold 0700 root root
+    mkdir /data/misc/gatekeeper 0700 system system
+    mkdir /data/misc/systemkeys 0700 system system
+    mkdir /data/system 0775 system system
+    mkdir /data/system_ce 0770 system system
+    mkdir /data/misc_ce 01771 system misc
+    mkdir /data/vendor 0771 root root
+    mkdir /data/vendor_ce 0771 root root
+    mkdir /data/media 0770 media_rw media_rw
+    mkdir /data/local/tmp 0771 shell shell
+    mkdir /data/data 0771 system system
+    trigger post-fs-data-tee
+
+on property:vold.decrypt=trigger_restart_min_framework
+    mkdir /data/misc 01771 system misc
+    mkdir /data/misc/keystore 0700 keystore keystore
+    mkdir /data/misc/vold 0700 root root
+    mkdir /data/misc/gatekeeper 0700 system system
+    mkdir /data/misc/systemkeys 0700 system system
+    mkdir /data/system 0775 system system
+    mkdir /data/system_ce 0770 system system
+    mkdir /data/misc_ce 01771 system misc
+    mkdir /data/vendor 0771 root root
+    mkdir /data/vendor_ce 0771 root root
+    mkdir /data/media 0770 media_rw media_rw
+    mkdir /data/local/tmp 0771 shell shell
+    mkdir /data/data 0771 system system
+    trigger post-fs-data-tee
+
+on property:vold.decrypt=trigger_reset_main
+    exec_background /system/bin/sh -c "dmesg >> /cache/vold_fail_dmesg.log; getprop >> /cache/vold_fail_props.log"
+    stop vold
+
+on property:vendor.crypto.fake_encrypt=1 && property:vold.post_fs_data_done=1
+    setprop vendor.soter.teei.crypto.state unencrypted
+
+on post-fs-data-tee
+    mkdir /data/vendor/thh 0755 system system
+    mkdir /data/vendor/thh/system 0755 system system
+    mkdir /data/vendor/thh/tee_00 0755 system system
+    mkdir /data/vendor/thh/tee_01 0755 system system
+    mkdir /data/vendor/thh/tee_02 0755 system system
+    mkdir /data/vendor/thh/tee_03 0755 system system
+    mkdir /data/vendor/thh/tee_04 0755 system system
+    mkdir /data/vendor/thh/tee_05 0755 system system
+    mkdir /data/vendor/thh/tee_06 0755 system system
+    mkdir /data/vendor/thh/tee_07 0755 system system
+    mkdir /data/vendor/thh/tee 0755 system system
+    mkdir /data/vendor/thh/tee/tas 0755 system system
+    mkdir /data/vendor/thh/tee_08 0755 system system
+    mkdir /data/vendor/thh/tee_09 0755 system system
+    mkdir /data/vendor/thh/tee_0A 0755 system system
+    mkdir /data/vendor/thh/tee_0B 0755 system system
+    mkdir /data/vendor/thh/tee_0C 0755 system system
+    mkdir /data/vendor/thh/tee_0D 0755 system system
+    mkdir /data/vendor/thh/tee_0E 0755 system system
+    mkdir /data/vendor/thh/tee_0F 0755 system system
+    mkdir /data/vendor/thh/ta 0755 system system
+    mkdir /data/vendor/key_provisioning 0771 system system
+    chmod 0755 /data/vendor/thh
+    chown system system /data/vendor/thh
+    chmod 0755 /data/vendor/thh/tee_00
+    chown system system /data/vendor/thh/tee_00
+    chmod 0755 /data/vendor/thh/tee_01
+    chown system system /data/vendor/thh/tee_01
+    chmod 0755 /data/vendor/thh/tee_02
+    chown system system /data/vendor/thh/tee_02
+    chmod 0755 /data/vendor/thh/tee_03
+    chown system system /data/vendor/thh/tee_03
+    chmod 0755 /data/vendor/thh/tee_04
+    chown system system /data/vendor/thh/tee_04
+    chmod 0755 /data/vendor/thh/tee_05
+    chown system system /data/vendor/thh/tee_05
+    chmod 0755 /data/vendor/thh/tee_06
+    chown system system /data/vendor/thh/tee_06
+    chmod 0755 /data/vendor/thh/tee_07
+    chown system system /data/vendor/thh/tee_07
+    chmod 0755 /data/vendor/thh/tee
+    chown system system /data/vendor/thh/tee
+    chmod 0755 /data/vendor/thh/tee/tas
+    chown system system /data/vendor/thh/tee/tas
+    chmod 0755 /data/vendor/thh/tee_08
+    chown system system /data/vendor/thh/tee_08
+    chmod 0755 /data/vendor/thh/tee_09
+    chown system system /data/vendor/thh/tee_09
+    chmod 0755 /data/vendor/thh/tee_0A
+    chown system system /data/vendor/thh/tee_0A
+    chmod 0755 /data/vendor/thh/tee_0B
+    chown system system /data/vendor/thh/tee_0B
+    chmod 0755 /data/vendor/thh/tee_0C
+    chown system system /data/vendor/thh/tee_0C
+    chmod 0755 /data/vendor/thh/tee_0D
+    chown system system /data/vendor/thh/tee_0D
+    chmod 0755 /data/vendor/thh/tee_0E
+    chown system system /data/vendor/thh/tee_0E
+    chmod 0755 /data/vendor/thh/tee_0F
+    chown system system /data/vendor/thh/tee_0F
+    chmod 0755 /data/vendor/thh/ta
+    chown system system /data/vendor/thh/ta
+    chmod 0755 /data/vendor/thh/system
+    chown system system /data/vendor/thh/system
+    restorecon_recursive /data/vendor/thh
+    chmod 0771 /data/vendor/key_provisioning
+    chown system system /data/vendor/key_provisioning
+
+# ============================================
+# PREVENT BOOTLOOP
+# ============================================
+on property:sys.powerctl=reboot
+    exec_background /system/bin/sh -c "echo 'REBOOT BLOCKED' >> /cache/recovery_debug.log; dmesg >> /cache/recovery_dmesg_blocked.log; getprop >> /cache/recovery_props_blocked.log"
+    setprop sys.powerctl ""
+
+# CORE SERVICES
+
+service servicemanager /system/bin/servicemanager
     class core
-    user system
-    group system
+    user root
+    group root readproc
     disabled
     seclabel u:r:recovery:s0
 
-service beanpod_check_keybox_service /vendor/bin/bp_kmsetkey_ca -c
+service hwservicemanager /system/bin/hwservicemanager
+    class core
+    user system
+    group system readproc
+    critical
+    onrestart setprop hwservicemanager.ready false
+    onrestart class_restart main
+    onrestart class_restart hal
+    onrestart class_restart early_hal
+    writepid /dev/cpuset/system-background/tasks
+    shutdown critical
+    disabled
+    seclabel u:r:recovery:s0
+
+service vold /system/bin/vold \
+        --blkid_context=u:r:blkid:s0 --blkid_untrusted_context=u:r:blkid_untrusted:s0 \
+        --fsck_context=u:r:fsck:s0 --fsck_untrusted_context=u:r:fsck_untrusted:s0
+    class core
+    ioprio be 2
+    writepid /dev/cpuset/foreground/tasks
+    shutdown critical
+    group root reserved_disk
+    disabled
+    seclabel u:r:recovery:s0
+
+service gatekeeperd /system/bin/gatekeeperd /data/misc/gatekeeper
     class late_start
+    user system
+    writepid /dev/cpuset/system-background/tasks
+    disabled
+    seclabel u:r:recovery:s0
+
+service keystore /system/bin/keystore /data/misc/keystore
+    class main
+    user keystore
+    group keystore drmrpc readproc log
+    writepid /dev/cpuset/foreground/tasks
+    disabled
+    seclabel u:r:recovery:s0
+
+service wait_for_keymaster /system/bin/wait_for_keymaster
+    class main
+    user root
+    group root system
+    priority -20
+    ioprio rt 0
+    disabled
+    oneshot
+    seclabel u:r:recovery:s0
+
+# HAL SERVICES
+
+service vendor.keymaster-4-0-beanpod /vendor/bin/hw/android.hardware.keymaster@4.0-service.beanpod
+    class early_hal
+    user system
+    group system drmrpc
+    disabled
+    seclabel u:r:recovery:s0
+
+service teei_capi_2_0 /vendor/bin/hw/vendor.microtrust.hardware.capi@2.0-service
+    class early_hal
     user system
     group system
     oneshot
     disabled
     seclabel u:r:recovery:s0
 
-on fs
-    # TEE device nodes - must be set before teei_daemon starts
-    chmod 0660 /dev/teei_client
-    chown system system /dev/teei_client
-    chmod 0660 /dev/teei_config
-    chown system system /dev/teei_config
-    chmod 0666 /dev/tee0
-    chown system drmrpc /dev/tee0
-    chmod 0660 /dev/tz_vfs
-    chown system system /dev/tz_vfs
-    chmod 0660 /dev/teei_fp
-    chown system system /dev/teei_fp
-    chown system drmrpc /dev/ut_keymaster
-    chmod 0660 /dev/ut_keymaster
-    chmod 0660 /dev/rpmb0
-    chown system system /dev/rpmb0
-    chmod 0660 /dev/emmcrpmb0
-    chown system system /dev/emmcrpmb0
-    chown system system /dev/utr_tui
-    chmod 0660 /dev/utr_tui
-    chmod 0666 /dev/tee_log
-    chown root root /dev/tee_log
-   
-    # REMOVED start teei_daemon from here. 
-    # It will be started in the main file AFTER hwservicemanager is ready.
+service vendor.gatekeeper-1-0 /vendor/bin/hw/android.hardware.gatekeeper@1.0-service
+    class early_hal
+    user system
+    group system
+    disabled
+    seclabel u:r:recovery:s0
 
-on post-fs
-    # Setup RPMB secure storage paths if partitions are mounted
-    exec_background /system/bin/sh -c "if [ -d /mnt/vendor/persist ]; then chown system system /mnt/vendor/persist; chmod 0771 /mnt/vendor/persist; mkdir -p /mnt/vendor/persist/rpmb; chown system system /mnt/vendor/persist/rpmb; chmod 0771 /mnt/vendor/persist/rpmb; fi"
-    exec_background /system/bin/sh -c "if [ -d /persist ]; then mkdir -p /persist/rpmb; chmod 0771 /persist/rpmb; chown system system /persist/rpmb; fi"
-    exec_background /system/bin/sh -c "if [ -d /vendor/persist ]; then mkdir -p /vendor/persist/rpmb; chmod 0771 /vendor/persist/rpmb; chown system system /vendor/persist/rpmb; fi"
-
-# Fallback for factory/recovery mode without real encryption
-on property:vendor.crypto.fake_encrypt=1 && property:vold.post_fs_data_done=1
-    setprop vendor.soter.teei.crypto.state unencrypted
-
-# REMOVED vold.decrypt triggers from here! 
-# They are now handled entirely by init.recovery.mt6765.rc to prevent duplicate execution.
+service keymaster_attestation-1-1 /vendor/bin/hw/vendor.mediatek.hardware.keymaster_attestation@1.1-service
+    class early_hal
+    user system
+    group system
+    disabled
+    seclabel u:r:recovery:s0
