@@ -73,98 +73,42 @@ on post-fs-data
     
     exec_background /system/bin/sh -c "echo 'CANARY: post-fs-data DONE' >> /cache/recovery_debug.log"
 
-# DYNAMIC TRIGGER CHAIN - FIXED ORDER #
+# ============================================
+# FBE RECOVERY FLOW: Start vold EARLY, let it discover keymaster
+# ============================================
 
+# Start TEE services once fs is ready
 on property:init.svc.teei_daemon=running
     exec_background /system/bin/sh -c "echo 'CANARY: teei_daemon running' >> /cache/recovery_debug.log"
     start beanpod_check_keybox_service
     start vendor.keymaster-4-0-beanpod
     start teei_capi_2_0
     start vendor.gatekeeper-1-0
+    start keymaster_attestation-1-1
 
-# SCENARIO A: ANDROID 10 Path (SDK 29)
-on property:init.svc.vendor.keymaster-4-0-beanpod=running && property:ro.build.version.sdk=29
-    exec_background /system/bin/sh -c "echo 'CANARY: SDK29 keymaster running' >> /cache/recovery_debug.log"
+# Start vold AFTER hwservicemanager is ready but BEFORE keystore
+# Vold will poll for keymaster HAL dynamically
+on property:hwservicemanager.ready=true
+    exec_background /system/bin/sh -c "echo 'CANARY: hwservicemanager ready, starting vold' >> /cache/recovery_debug.log"
+    setprop vold.post_fs_data_done 1
+    start vold
+
+# Start keystore/gatekeeperd AFTER vold is running (for app/crypto compatibility)
+on property:init.svc.vold=running
+    exec_background /system/bin/sh -c "echo 'CANARY: vold running, starting keystore' >> /cache/recovery_debug.log"
     start wait_for_keymaster
 
-on property:init.svc.wait_for_keymaster=stopped && property:ro.build.version.sdk=29
-    exec_background /system/bin/sh -c "echo 'CANARY: SDK29 wait_for_keymaster done' >> /cache/recovery_debug.log"
+on property:init.svc.wait_for_keymaster=stopped
+    exec_background /system/bin/sh -c "echo 'CANARY: wait_for_keymaster done' >> /cache/recovery_debug.log"
     start keystore
     start gatekeeperd
-
-on property:init.svc.keystore=running && property:ro.build.version.sdk=29
-    exec_background /system/bin/sh -c "echo 'CANARY: SDK29 keystore running, starting vold' >> /cache/recovery_debug.log"
-    setprop vold.post_fs_data_done 1
-    start vold
-
-# SCENARIO B: ANDROID 11 Path (SDK 30)
-on property:init.svc.vendor.keymaster-4-0-beanpod=running && property:ro.build.version.sdk=30
-    exec_background /system/bin/sh -c "echo 'CANARY: SDK30 keymaster running' >> /cache/recovery_debug.log"
-    start wait_for_keymaster
-
-on property:init.svc.wait_for_keymaster=stopped && property:ro.build.version.sdk=30
-    exec_background /system/bin/sh -c "echo 'CANARY: SDK30 wait_for_keymaster done' >> /cache/recovery_debug.log"
-    start keystore
-    start gatekeeperd
-    setprop vold.post_fs_data_done 1
-    start vold
-
-# SCENARIO C: ANDROID 12+ Path (SDK 31+)
-# NOTE: If keystore2 is missing, use keystore as fallback
-on property:init.svc.vendor.keymaster-4-0-beanpod=running && property:ro.build.version.sdk=31
-    exec_background /system/bin/sh -c "echo 'CANARY: SDK31 keymaster running' >> /cache/recovery_debug.log"
-    start vndservicemanager
-    start wait_for_keymaster
-
-on property:init.svc.vendor.keymaster-4-0-beanpod=running && property:ro.build.version.sdk=32
-    exec_background /system/bin/sh -c "echo 'CANARY: SDK32 keymaster running' >> /cache/recovery_debug.log"
-    start vndservicemanager
-    start wait_for_keymaster
-
-on property:init.svc.vendor.keymaster-4-0-beanpod=running && property:ro.build.version.sdk=33
-    exec_background /system/bin/sh -c "echo 'CANARY: SDK33 keymaster running' >> /cache/recovery_debug.log"
-    start vndservicemanager
-    start wait_for_keymaster
-
-on property:init.svc.vendor.keymaster-4-0-beanpod=running && property:ro.build.version.sdk=34
-    exec_background /system/bin/sh -c "echo 'CANARY: SDK34 keymaster running' >> /cache/recovery_debug.log"
-    start vndservicemanager
-    start wait_for_keymaster
-
-on property:init.svc.wait_for_keymaster=stopped && property:ro.build.version.sdk=31
-    exec_background /system/bin/sh -c "echo 'CANARY: SDK31 wait_for_keymaster done' >> /cache/recovery_debug.log"
-    start keystore2
-    start gatekeeperd
-    setprop vold.post_fs_data_done 1
-    start vold
-
-on property:init.svc.wait_for_keymaster=stopped && property:ro.build.version.sdk=32
-    exec_background /system/bin/sh -c "echo 'CANARY: SDK32 wait_for_keymaster done' >> /cache/recovery_debug.log"
-    start keystore2
-    start gatekeeperd
-    setprop vold.post_fs_data_done 1
-    start vold
-
-on property:init.svc.wait_for_keymaster=stopped && property:ro.build.version.sdk=33
-    exec_background /system/bin/sh -c "echo 'CANARY: SDK33 wait_for_keymaster done' >> /cache/recovery_debug.log"
-    start keystore2
-    start gatekeeperd
-    setprop vold.post_fs_data_done 1
-    start vold
-
-on property:init.svc.wait_for_keymaster=stopped && property:ro.build.version.sdk=34
-    exec_background /system/bin/sh -c "echo 'CANARY: SDK34 wait_for_keymaster done' >> /cache/recovery_debug.log"
-    start keystore2
-    start gatekeeperd
-    setprop vold.post_fs_data_done 1
-    start vold
 
 # VOLD STATE HANDLERS
-on property:init.svc.vold=running
-    exec_background /system/bin/sh -c "echo 'CANARY: vold running' >> /cache/recovery_debug.log"
-
 on property:vold.decrypt=trigger_restart_framework
     exec_background /system/bin/sh -c "echo 'CANARY: vold decrypt SUCCESS' >> /cache/recovery_debug.log"
+
+on property:vold.decrypt=trigger_restart_min_framework
+    exec_background /system/bin/sh -c "echo 'CANARY: vold decrypt min_framework' >> /cache/recovery_debug.log"
 
 on property:vold.decrypt=trigger_reset_main
     exec_background /system/bin/sh -c "echo 'CANARY: vold decrypt FAILED' >> /cache/recovery_debug.log; dmesg >> /cache/vold_fail_dmesg.log; getprop >> /cache/vold_fail_props.log"
@@ -174,7 +118,7 @@ on property:vendor.crypto.fake_encrypt=1 && property:vold.post_fs_data_done=1
     exec_background /system/bin/sh -c "echo 'CANARY: fake_encrypt fallback' >> /cache/recovery_debug.log"
     setprop vendor.soter.teei.crypto.state unencrypted
 
-# CORE SERVICES #
+# CORE SERVICES
 
 service servicemanager /system/bin/servicemanager
     class core
@@ -189,15 +133,6 @@ service hwservicemanager /system/bin/hwservicemanager
     group system readproc
     critical
     onrestart setprop hwservicemanager.ready false
-    writepid /dev/cpuset/system-background/tasks
-    shutdown critical
-    disabled
-    seclabel u:r:recovery:s0
-
-service vndservicemanager /system/bin/vndservicemanager /dev/vndbinder
-    class core
-    user system
-    group system readproc
     writepid /dev/cpuset/system-background/tasks
     shutdown critical
     disabled
@@ -238,14 +173,6 @@ service keystore /system/bin/keystore /data/misc/keystore
     disabled
     seclabel u:r:recovery:s0
 
-service keystore2 /system/bin/keystore2 /data/misc/keystore
-    class main
-    user keystore
-    group keystore drmrpc readproc log
-    writepid /dev/cpuset/foreground/tasks
-    disabled
-    seclabel u:r:recovery:s0
-
 service wait_for_keymaster /system/bin/wait_for_keymaster
     class main
     user root
@@ -256,7 +183,8 @@ service wait_for_keymaster /system/bin/wait_for_keymaster
     oneshot
     seclabel u:r:recovery:s0
 
-# MISSING SERVICES - ADD THESE
+# MICROTRUST / MEDIATEK HAL SERVICES
+
 service vendor.keymaster-4-0-beanpod /vendor/bin/hw/android.hardware.keymaster@4.0-service.beanpod
     class hal
     user system
@@ -272,6 +200,14 @@ service teei_capi_2_0 /vendor/bin/hw/vendor.microtrust.hardware.capi@2.0-service
     seclabel u:r:recovery:s0
 
 service vendor.gatekeeper-1-0 /vendor/bin/hw/android.hardware.gatekeeper@1.0-service
+    class hal
+    user system
+    group system
+    disabled
+    seclabel u:r:recovery:s0
+
+service keymaster_attestation-1-1 /vendor/bin/hw/vendor.mediatek.hardware.keymaster_attestation@1.1-service
+    interface vendor.mediatek.hardware.keymaster_attestation@1.1::IKeymasterDevice default
     class hal
     user system
     group system
