@@ -20,79 +20,47 @@ service teei_daemon /vendor/bin/teei_daemon \
     -r 7b66512021214487ba710a51d7ea78fe \
     -r 09010000000000000000000000000000
     class core
-    user system
-    group system
+    user 1000
+    group 1000 drmrpc
     disabled
-    seclabel u:r:recovery:s0
-
-# EXACT MATCH FROM STOCK ROM
-service vendor.keymaster-4-0-beanpod /vendor/bin/hw/android.hardware.keymaster@4.0-service.beanpod
-    class early_hal
-    user system
-    group system drmrpc
-    disabled
-    seclabel u:r:recovery:s0
-
-# EXACT MATCH FROM STOCK ROM
-service teei_capi_2_0 /vendor/bin/hw/vendor.microtrust.hardware.capi@2.0-service
-    class hal
-    user system
-    group system
-    disabled
-    oneshot
-    seclabel u:r:recovery:s0
-
-# EXACT MATCH FROM STOCK ROM
-service vendor.gatekeeper-1-0 /vendor/bin/hw/android.hardware.gatekeeper@1.0-service
-    class hal
-    user system
-    group system
-    disabled
-    seclabel u:r:recovery:s0
-
-# EXACT MATCH FROM STOCK ROM (microtrust.bp_kmsetkey_ca.rc)
-service beanpod_check_keybox_service /vendor/bin/bp_kmsetkey_ca -c
-    class late_start
-    user system
-    group system
-    disabled
-    oneshot
     seclabel u:r:recovery:s0
 
 on fs
     chmod 0660 /dev/teei_client
-    chown system system /dev/teei_client
+    chown 1000 1000 /dev/teei_client
     chmod 0660 /dev/teei_config
-    chown system system /dev/teei_config
+    chown 1000 1000 /dev/teei_config
     chmod 0666 /dev/tee0
-    chown system drmrpc /dev/tee0
+    chown 1000 drmrpc /dev/tee0
     chmod 0660 /dev/tz_vfs
-    chown system system /dev/tz_vfs
+    chown 1000 1000 /dev/tz_vfs
     chmod 0660 /dev/teei_fp
-    chown system system /dev/teei_fp
-    chown system drmrpc /dev/ut_keymaster
+    chown 1000 1000 /dev/teei_fp
+    chown 1000 drmrpc /dev/ut_keymaster
     chmod 0660 /dev/ut_keymaster
     chmod 0660 /dev/rpmb0
-    chown system system /dev/rpmb0
+    chown 1000 1000 /dev/rpmb0
     chmod 0660 /dev/emmcrpmb0
-    chown system system /dev/emmcrpmb0
-    chown system system /dev/utr_tui
+    chown 1000 1000 /dev/emmcrpmb0
+    chown 1000 1000 /dev/utr_tui
     chmod 0660 /dev/utr_tui
     
     start teei_daemon
 
 on post-fs
-    chown system system /mnt/vendor/persist
+    # Setup RPMB secure storage paths
+    chown 1000 1000 /mnt/vendor/persist
     chmod 0771 /mnt/vendor/persist
     mkdir /mnt/vendor/persist/rpmb 0771 system system
-    chown system system /mnt/vendor/persist/rpmb
+    chown 1000 1000 /mnt/vendor/persist/rpmb
     
     mkdir /persist/rpmb 0771 system system
     mkdir /vendor/persist/rpmb 0771 system system
-    chown system system /persist/rpmb
-    chown system system /vendor/persist/rpmb
+    chown 1000 1000 /persist/rpmb
+    chown 1000 1000 /vendor/persist/rpmb
 
 on post-fs-data
+    # FORCE TRIGGER MAKES RECOVERY FOLDER SECURITY (Bypass Missing Folder Crash)
     mkdir /data/vendor/thh 0755 system system
     mkdir /data/vendor/thh/system 0755 system system
     mkdir /data/vendor/thh/tee_00 0755 system system
@@ -115,53 +83,3 @@ on post-fs-data
     mkdir /data/vendor/thh/tee_0F 0755 system system
     mkdir /data/vendor/thh/ta 0755 system system
     mkdir /data/vendor/key_provisioning 0771 system system
-
-    # EXACT chmod/chown from stock microtrust.rc
-    chmod 0755 /data/vendor/thh
-    chown system system /data/vendor/thh
-    chmod 0755 /data/vendor/thh/tee_00
-    chown system system /data/vendor/thh/tee_00
-    chmod 0755 /data/vendor/thh/tee_01
-    chown system system /data/vendor/thh/tee_01
-    chmod 0755 /data/vendor/thh/tee_02
-    chown system system /data/vendor/thh/tee_02
-    chmod 0755 /data/vendor/thh/tee_03
-    chown system system /data/vendor/thh/tee_03
-    chmod 0755 /data/vendor/thh/tee_04
-    chown system system /data/vendor/thh/tee_04
-    chmod 0755 /data/vendor/thh/tee_05
-    chown system system /data/vendor/thh/tee_05
-    chmod 0755 /data/vendor/thh/tee_06
-    chown system system /data/vendor/thh/tee_06
-    chmod 0755 /data/vendor/thh/tee_07
-    chown system system /data/vendor/thh/tee_07
-    chmod 0755 /data/vendor/thh/tee
-    chown system system /data/vendor/thh/tee
-    chmod 0755 /data/vendor/thh/tee/tas
-    chown system system /data/vendor/thh/tee/tas
-    chmod 0755 /data/vendor/thh/tee_08
-    chown system system /data/vendor/thh/tee_08
-    chmod 0755 /data/vendor/thh/tee_09
-    chown system system /data/vendor/thh/tee_09
-    chmod 0755 /data/vendor/thh/tee_0A
-    chown system system /data/vendor/thh/tee_0A
-    chmod 0755 /data/vendor/thh/tee_0B
-    chown system system /data/vendor/thh/tee_0B
-    chmod 0755 /data/vendor/thh/tee_0C
-    chown system system /data/vendor/thh/tee_0C
-    chmod 0755 /data/vendor/thh/tee_0D
-    chown system system /data/vendor/thh/tee_0D
-    chmod 0755 /data/vendor/thh/tee_0E
-    chown system system /data/vendor/thh/tee_0E
-    chmod 0755 /data/vendor/thh/tee_0F
-    chown system system /data/vendor/thh/tee_0F
-    chmod 0755 /data/vendor/thh/ta
-    chown system system /data/vendor/thh/ta
-    chmod 0755 /data/vendor/thh/system
-    chown system system /data/vendor/thh/system
-    chmod 0771 /data/vendor/key_provisioning
-    chown system system /data/vendor/key_provisioning
-
-# STOCK TRIGGER FOR FBE FAKE STATE
-on property:vendor.crypto.fake_encrypt=1 && property:vold.post_fs_data_done=1
-    setprop vendor.soter.teei.crypto.state unencrypted
