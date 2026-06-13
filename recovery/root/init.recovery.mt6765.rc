@@ -281,7 +281,7 @@ service wait_for_keymaster /system/bin/wait_for_keymaster
 # HAL SERVICES
 
 service vendor.keymaster-4-0-beanpod /vendor/bin/hw/android.hardware.keymaster@4.0-service.beanpod
-    class hal
+    class early_hal     # CHANGED from 'hal' to 'early_hal' to match stock
     user system
     group system drmrpc
     disabled
@@ -291,6 +291,7 @@ service teei_capi_2_0 /vendor/bin/hw/vendor.microtrust.hardware.capi@2.0-service
     class hal
     user system
     group system
+    oneshot            # ADDED to match stock
     disabled
     seclabel u:r:recovery:s0
 
