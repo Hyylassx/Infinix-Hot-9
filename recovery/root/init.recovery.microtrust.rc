@@ -57,7 +57,10 @@ on fs
     chmod 0660 /dev/utr_tui
     chmod 0666 /dev/tee_log
     chown root root /dev/tee_log
-    
+   
+    # ... existing device node setup ...
+    # Ensure /metadata/vold exists for vold (before vold starts)
+    exec_background /system/bin/sh -c "if [ -d /metadata ]; then mkdir -p /metadata/vold; chmod 0700 /metadata/vold; chown root root /metadata/vold; restorecon /metadata/vold; fi"
     start teei_daemon
 
 on post-fs
