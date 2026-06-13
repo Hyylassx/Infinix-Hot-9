@@ -71,7 +71,6 @@ BOARD_USERDATAIMAGE_FILE_SYSTEM_TYPE := f2fs
 BOARD_USERDATAIMAGE_PARTITION_SIZE := 119291231232
 BOARD_RAMDISK_USE_LZMA := false
 
-
 # Dynamic Partitions
 BOARD_SUPER_PARTITION_SIZE := 4479516672
 BOARD_SUPER_PARTITION_GROUPS := infinix_dynamic_partitions
@@ -139,4 +138,6 @@ TW_USE_FSCRYPT_POLICY := 1
 TW_NO_KEYSTORE2 := true
 TW_LOAD_VENDOR_BOOT_MODULES := true
 TW_CUSTOM_SETTINGS_PATH := /cache/recovery/fox
-TW_FORCE_KEY_DIRECTORY := "/data/unencrypted/key"
+
+# CRITICAL FIX: Remove wrong key path, let OrangeFox auto-detect
+# TW_FORCE_KEY_DIRECTORY := "/data/unencrypted/key"  # REMOVED - wrong for MTK FBE
