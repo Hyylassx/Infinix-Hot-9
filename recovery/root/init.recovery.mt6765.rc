@@ -57,6 +57,17 @@ on post-fs
     symlink /dev/block/mmcblk0boot1 /dev/block/platform/bootdevice/by-name/preloader_b
     chmod 0755 /sbin/foxstart.sh
 
+on late-fs
+    # CRITICAL: Stop Android 12 keystore2 from crashing on Android 10 vendor!
+    stop keystore2
+    
+    # Wait for hwservicemanager just like stock MTK does
+    wait_for_prop hwservicemanager.ready true
+    
+    # Now safe to start early HALs and TEE
+    class_start early_hal
+    start teei_daemon
+
 on boot
     chmod 0666 /dev/input/event0
     chmod 0666 /dev/input/event1
@@ -74,10 +85,6 @@ on post-fs-data
 # TEE / KEYMASTER / VOLD TRIGGER CHAIN
 # ============================================
 
-# Start TEE only after hwservicemanager is ready!
-on property:hwservicemanager.ready=true
-    start teei_daemon
-
 on property:init.svc.teei_daemon=running
     start beanpod_check_keybox_service
     start vendor.keymaster-4-0-beanpod
@@ -86,7 +93,7 @@ on property:init.svc.teei_daemon=running
     start keymaster_attestation-1-1
 
 on property:init.svc.vendor.keymaster-4-0-beanpod=running
-    setprop vold.post_fs_data_done 1
+    # REMOVED: setprop vold.post_fs_data_done 1 (This breaks vold crypto state machine!)
     start vold
 
 on property:init.svc.vold=running
@@ -208,13 +215,22 @@ on post-fs-data-tee
     restorecon_recursive /data/vendor/thh
 
 # ============================================
-# PREVENT BOOTLOOP
+# PREVENT BOOTLOOP & FASTBOOT REBOOTS
 # ============================================
 on property:sys.powerctl=reboot
-    exec_background /system/bin/sh -c "echo 'REBOOT BLOCKED - Decryption failed but kept alive for debugging' >> /cache/recovery_debug.log; dmesg >> /cache/recovery_dmesg_blocked.log; getprop >> /cache/recovery_props_blocked.log"
+    exec_background /system/bin/sh -c "echo 'REBOOT BLOCKED' >> /cache/recovery_debug.log; dmesg >> /cache/recovery_dmesg_blocked.log; getprop >> /cache/recovery_props_blocked.log"
+    setprop sys.powerctl ""
+
+on property:sys.powerctl=reboot,bootloader
+    exec_background /system/bin/sh -c "echo 'FASTBOOT REBOOT BLOCKED' >> /cache/recovery_debug.log; dmesg >> /cache/recovery_dmesg_blocked.log; getprop >> /cache/recovery_props_blocked.log"
+    setprop sys.powerctl ""
+
+on property:sys.powerctl=reboot,recovery
+    exec_background /system/bin/sh -c "echo 'RECOVERY REBOOT BLOCKED' >> /cache/recovery_debug.log; dmesg >> /cache/recovery_dmesg_blocked.log; getprop >> /cache/recovery_props_blocked.log"
     setprop sys.powerctl ""
 
 # CORE SERVICES
+# NOTE: Removed 'critical' keyword so crashes don't cascade into a fastboot reboot!
 
 service servicemanager /system/bin/servicemanager
     class core
@@ -227,7 +243,7 @@ service hwservicemanager /system/bin/hwservicemanager
     class core
     user system
     group system readproc
-    critical
+    onrestart setprop hwservicemanager.ready false
     writepid /dev/cpuset/system-background/tasks
     shutdown critical
     disabled
@@ -281,29 +297,29 @@ service wait_for_keymaster /system/bin/wait_for_keymaster
 # HAL SERVICES
 
 service vendor.keymaster-4-0-beanpod /vendor/bin/hw/android.hardware.keymaster@4.0-service.beanpod
-    class early_hal     # CHANGED from 'hal' to 'early_hal' to match stock
+    class early_hal
     user system
     group system drmrpc
     disabled
     seclabel u:r:recovery:s0
 
 service teei_capi_2_0 /vendor/bin/hw/vendor.microtrust.hardware.capi@2.0-service
-    class hal
+    class early_hal
     user system
     group system
-    oneshot            # ADDED to match stock
+    oneshot
     disabled
     seclabel u:r:recovery:s0
 
 service vendor.gatekeeper-1-0 /vendor/bin/hw/android.hardware.gatekeeper@1.0-service
-    class hal
+    class early_hal
     user system
     group system
     disabled
     seclabel u:r:recovery:s0
 
 service keymaster_attestation-1-1 /vendor/bin/hw/vendor.mediatek.hardware.keymaster_attestation@1.1-service
-    class hal
+    class early_hal
     user system
     group system
     disabled
