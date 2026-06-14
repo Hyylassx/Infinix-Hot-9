@@ -94,6 +94,13 @@ PRODUCT_COPY_FILES += \
     $(DEVICE_PATH)/recovery/root/vendor/lib64/vendor.mediatek.hardware.keymaster_attestation@1.1.so:recovery/root/vendor/lib64/vendor.mediatek.hardware.keymaster_attestation@1.1.so \
     $(DEVICE_PATH)/recovery/root/vendor/lib64/hw/vendor.mediatek.hardware.keymaster_attestation@1.1-impl.so:recovery/root/vendor/lib64/hw/vendor.mediatek.hardware.keymaster_attestation@1.1-impl.so
 
+# Bin
+PRODUCT_COPY_FILES += \
+    $(DEVICE_PATH)/recovery/root/system/bin/vold:root/system/bin/vold \
+    $(DEVICE_PATH)/recovery/root/system/bin/keystore:root/system/bin/keystore \
+    $(DEVICE_PATH)/recovery/root/system/bin/gatekeeperd:root/system/bin/gatekeeperd \
+    $(DEVICE_PATH)/recovery/root/system/bin/wait_for_keymaster:root/system/bin/wait_for_keymaster
+
 # TRUSTED APPLICATIONS (TA Files)
 PRODUCT_COPY_FILES += \
     $(DEVICE_PATH)/recovery/root/vendor/thh/ta/7778c03fc30c4dd0a319ea29643d4d4b.ta:recovery/root/vendor/thh/ta/7778c03fc30c4dd0a319ea29643d4d4b.ta \
