@@ -57,14 +57,13 @@ on post-fs
     symlink /dev/block/mmcblk0boot1 /dev/block/platform/bootdevice/by-name/preloader_b
     chmod 0755 /sbin/foxstart.sh
 
-on late-fs
-    # CRITICAL: Stop Android 12 keystore2 from crashing on Android 10 vendor!
+    # Stop Android 12 keystore2
     stop keystore2
     
-    # Wait for hwservicemanager just like stock MTK does
+    # Wait for hwservicemanager
     wait_for_prop hwservicemanager.ready true
     
-    # Now safe to start early HALs and TEE
+    # Start TEE and keymaster
     class_start early_hal
     start teei_daemon
 
