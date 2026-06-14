@@ -14,7 +14,3 @@ PRODUCT_SHIPPING_API_LEVEL := 29
 PRODUCT_TARGET_VNDK_VERSION := 29
 PRODUCT_PLATFORM := mt6765
 PRODUCT_USE_DYNAMIC_PARTITIONS := true
-
-# Force FBE Crypto Properties (Tells recovery it is FBE encrypted)
-PRODUCT_SYSTEM_DEFAULT_PROPERTIES += ro.crypto.state=encrypted
-PRODUCT_SYSTEM_DEFAULT_PROPERTIES += ro.crypto.type=file
